@@ -7,25 +7,107 @@ import ProductCard from "@/components/ProductCard";
 
 const CATEGORIES = ["All", "Cake", "Loaf", "Cupcake", "Cookie", "Special"];
 
+const FALLBACK_PRODUCTS = [
+  ...[
+    { file: "/images/cake.jpeg", name: "Classic Cake", price: 2800, description: "Elegant cake for everyday celebrations." },
+    { file: "/images/cake2.jpeg", name: "Butter Cake", price: 3000, description: "Soft buttery sponge with smooth finish." },
+    { file: "/images/cake4.jpeg", name: "Cream Cake", price: 3200, description: "Rich cream cake made for special gatherings." },
+    { file: "/images/cake4a.jpeg", name: "Layered Cake", price: 3400, description: "Beautiful layered cake with a classic look." },
+    { file: "/images/cakes1a.jpeg", name: "Mini Cakes", price: 2600, description: "Delightful mini cakes for intimate events." },
+    { file: "/images/cakes2.jpeg", name: "Berry Cake", price: 3100, description: "Fresh berry-inspired cake with soft texture." },
+  ].map((item, index) => ({
+    _id: `fallback-cake-${index}`,
+    image: item.file,
+    name: item.name,
+    price: item.price,
+    description: item.description,
+    category: "Cake",
+    featured: index === 0,
+    options: ["Classic", "Cream"],
+  })),
+  ...[
+    { file: "/images/loaf1a.jpeg", name: "Loaf Delight", price: 1200, description: "Soft loaf with a comforting baked finish." },
+    { file: "/images/loaf1b.jpeg", name: "Golden Loaf", price: 1300, description: "A rich loaf with a warm golden crust." },
+    { file: "/images/loaf1c.jpeg", name: "Tea Loaf", price: 1250, description: "Perfect for tea time and light snacking." },
+    { file: "/images/loafa.jpeg", name: "Butter Loaf", price: 1350, description: "Buttery loaf baked fresh every day." },
+  ].map((item, index) => ({
+    _id: `fallback-loaf-${index}`,
+    image: item.file,
+    name: item.name,
+    price: item.price,
+    description: item.description,
+    category: "Loaf",
+    options: ["Butter", "Honey"],
+  })),
+  ...[
+    { file: "/images/fruitcake.jpeg", name: "Fruitcake", price: 3600, description: "Packed with fruit and rich spice." },
+    { file: "/images/fruitcake1.jpeg", name: "Fruitcake Special", price: 3800, description: "A festive fruitcake with a premium finish." },
+    { file: "/images/celebrationcake1.jpeg", name: "Celebration Cake", price: 4200, description: "A standout cake for birthdays and celebrations." },
+    { file: "/images/celebrationcake1a.jpeg", name: "Celebration Cake Deluxe", price: 4400, description: "Styled for elegant celebration tables." },
+    { file: "/images/celebrationcake2.jpeg", name: "Celebration Cake Two", price: 4300, description: "Gorgeous two-tier style celebration cake." },
+    { file: "/images/celebrationcake2a.jpeg", name: "Celebration Cake Three", price: 4500, description: "A festive cake with a refined appearance." },
+    { file: "/images/Celebrationcake3a.jpeg", name: "Celebration Cake Classic", price: 4100, description: "Classic celebration cake with a smooth finish." },
+    { file: "/images/celebrationcake3b.jpeg", name: "Celebration Cake Bloom", price: 4600, description: "Decorated for a more premium look." },
+    { file: "/images/celebrationcake3c.jpeg", name: "Celebration Cake Joy", price: 4700, description: "Bright and celebratory for any occasion." },
+  ].map((item, index) => ({
+    _id: `fallback-special-${index}`,
+    image: item.file,
+    name: item.name,
+    price: item.price,
+    description: item.description,
+    category: "Special",
+    featured: index < 2,
+    options: ["Classic", "Premium"],
+  })),
+  {
+    _id: "fallback-cupcake",
+    name: "Berry Cupcakes",
+    price: 800,
+    description: "Moist cupcakes with a sweet berry finish.",
+    image: "/images/Backery3.jpeg",
+    category: "Cupcake",
+    featured: true,
+    options: ["Berry", "Caramel"],
+  },
+  {
+    _id: "fallback-cookie",
+    name: "Butter Cookies",
+    price: 600,
+    description: "Crisp, buttery bites perfect for tea time.",
+    image: "/images/cookies.jpeg",
+    category: "Cookie",
+    options: ["Classic", "Choco"],
+  },
+];
+
 export default function HomePage() {
-  const [products, setProducts]   = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
 
   useEffect(() => {
     let mounted = true;
 
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((d) => {
-        if (mounted && d.success) setProducts(d.data || []);
-      })
-      .catch(() => {
-        if (mounted) setProducts([]);
-      })
-      .finally(() => {
+    const loadProducts = async () => {
+      try {
+        const response = await fetch("/api/products");
+        const data = await response.json();
+
+        if (!mounted) return;
+
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          setProducts(data.data);
+        } else {
+          setProducts(FALLBACK_PRODUCTS);
+        }
+      } catch {
+        if (mounted) setProducts(FALLBACK_PRODUCTS);
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    };
+
+    loadProducts();
 
     return () => {
       mounted = false;

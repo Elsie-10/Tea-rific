@@ -120,6 +120,18 @@ export default function AboutPage() {
               </div>
             ))}
 
+            {/* Image gallery showcasing some bakery work */}
+            <div className="bg-[#FDF8F0] border border-[#F2E0D0] rounded-2xl p-6">
+              <h3 className="font-serif text-xl font-bold text-[#6B3F1F] mb-3">Our Work</h3>
+              <p className="text-gray-500 text-xs mb-4">A selection of our cakes and loaves.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <img src="/images/Backery10.jpeg" alt="Cake 1" className="w-full h-32 object-cover rounded-md" />
+                <img src="/images/Backery11.jpeg" alt="Cake 2" className="w-full h-32 object-cover rounded-md" />
+                <img src="/images/cakes3.jpeg" alt="Special cake" className="w-full h-32 object-cover rounded-md" />
+                <img src="/images/cakes.jpeg" alt="Loaf" className="w-full h-32 object-cover rounded-md" />
+              </div>
+            </div>
+
             {/* Terms card */}
             <div className="bg-[#6B3F1F] text-white rounded-2xl p-6">
               <h3 className="font-serif text-xl font-bold mb-3">📋 Terms & Conditions</h3>

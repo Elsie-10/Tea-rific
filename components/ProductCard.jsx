@@ -6,14 +6,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const CATEGORY_EMOJI = {
-  Cake: "🎂", Loaf: "🍞", Cupcake: "🧁", Cookie: "🍪", Special: "✨", Drink: "☕", Other: "🛒",
+  Cake: "🎂", Loaf: "🍞", Cupcake: "🧁",
+  Cookie: "🍪", Special: "✨", Drink: "☕", Other: "🛒",
 };
 
 export default function ProductCard({ product }) {
-  const { addItem } = useCart();
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [added, setAdded] = useState(false);
+  const { addItem }          = useCart();
+  const { data: session }    = useSession();
+  const router               = useRouter();
+  const [added, setAdded]    = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const handleAdd = () => {
     if (!session) { router.push("/auth/login"); return; }
@@ -22,30 +24,51 @@ export default function ProductCard({ product }) {
     setTimeout(() => setAdded(false), 1500);
   };
 
+  // Default images per category (fall back to placeholder)
+  const DEFAULT_CATEGORY_IMAGES = {
+    Cake: "/images/Backery1.jpeg",
+    Loaf: "/images/cakes.jpeg",
+    Cupcake: "/images/Backery3.jpeg",
+    Cookie: "/images/cookies.jpeg",
+    Special: "/images/Youghut.jpeg",
+    Other: "/images/placeholder.jpg",
+  };
+
+  // Use product.image when available; otherwise pick a category image.
+  const imageSrc = imgError || !product?.image
+    ? (DEFAULT_CATEGORY_IMAGES[product?.category] || "/images/placeholder.jpg")
+    : product.image;
+
   return (
-    <div className="card group hover:shadow-md transition-shadow duration-200 flex flex-col">
-      {/* Image */}
-      <div className="relative w-full h-48 bg-[#FDF8F0] flex-shrink-0">
+    <div className="card group hover:shadow-md transition-all duration-200 flex flex-col">
+
+      {/* ── Image ── */}
+      <div className="relative w-full h-52 bg-[#F2E0D0] overflow-hidden flex-shrink-0">
         <Image
-          src={product.image || "/images/placeholder.jpg"}
+          src={imageSrc}
           alt={product.name}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          onError={(e) => { e.currentTarget.src = "/images/placeholder.jpg"; }}
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          onError={() => setImgError(true)}
         />
+
+        {/* Featured badge */}
         {product.featured && (
-          <span className="absolute top-2 left-2 bg-[#D4A843] text-white text-[10px] font-bold
-                           uppercase tracking-widest px-2 py-1 rounded-full shadow">
+          <span className="absolute top-3 left-3 bg-[#D4A843] text-white text-[10px] font-bold
+                           uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm">
             Popular
           </span>
         )}
-        <span className="absolute top-2 right-2 text-xl">
+
+        {/* Category emoji pill */}
+        <span className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm text-base
+                         px-2 py-0.5 rounded-full shadow-sm">
           {CATEGORY_EMOJI[product.category] || "🛒"}
         </span>
       </div>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <div className="p-4 flex flex-col flex-1">
         <p className="text-xs text-[#4A7C59] font-semibold uppercase tracking-wider mb-1">
           {product.category}
@@ -53,21 +76,27 @@ export default function ProductCard({ product }) {
         <h3 className="font-serif text-[#2C2C2C] font-semibold text-base leading-snug mb-1">
           {product.name}
         </h3>
-        <p className="text-gray-500 text-xs line-clamp-3 mb-3 flex-1">{product.description}</p>
+        <p className="text-gray-400 text-xs line-clamp-2 mb-3 flex-1 leading-relaxed">
+          {product.description}
+        </p>
 
-        {/* Flavour options chips */}
+        {/* Flavour option chips */}
         {product.options?.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {product.options.map((opt) => (
-              <span key={opt} className="text-[10px] bg-[#FDF8F0] border border-[#F2E0D0]
-                                         text-[#6B3F1F] px-2 py-0.5 rounded-full font-medium">
+              <span
+                key={opt}
+                className="text-[10px] bg-[#FDF8F0] border border-[#F2E0D0]
+                           text-[#6B3F1F] px-2 py-0.5 rounded-full font-medium"
+              >
                 {opt}
               </span>
             ))}
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-auto">
+        {/* Price + Add button */}
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-[#F2E0D0]">
           <span className="text-[#6B3F1F] font-bold text-lg">
             Ksh {product.price.toLocaleString()}
           </span>

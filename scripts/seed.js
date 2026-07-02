@@ -1,7 +1,7 @@
 /**
  * Tea-Terrific Seed Script
- * Usage: node scripts/seed.js
- * Add --force flag to wipe and re-seed products: node scripts/seed.js --force
+ * Usage:             node scripts/seed.js
+ * Re-seed products:  node scripts/seed.js --force
  */
 
 const mongoose = require("mongoose");
@@ -9,11 +9,10 @@ const bcrypt   = require("bcryptjs");
 require("dotenv").config({ path: ".env.local" });
 
 const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) { console.error("❌  MONGODB_URI not set"); process.exit(1); }
+if (!MONGODB_URI) { console.error("❌  MONGODB_URI not set in .env.local"); process.exit(1); }
 
 const force = process.argv.includes("--force");
 
-// ── Schemas ────────────────────────────────────────────────────────────────
 const UserSchema = new mongoose.Schema({
   name: String, email: String, password: String, role: String, phone: String,
 });
@@ -23,16 +22,17 @@ const ProductSchema = new mongoose.Schema({
   options: [String],
 });
 
-// ── Real products from the Tea-rific Treats menu ───────────────────────────
+// ── Products mapped to your actual image files ─────────────────────────────
 const PRODUCTS = [
-  // ── Cakes ──
+
+  // ── CAKES ──────────────────────────────────────────────────────────────
   {
     name: "Cake – 1 Kg",
     price: 4000,
     category: "Cake",
     featured: true,
-    description: "Layered cake with swiss meringue butter cream frosting and a filling of your choice. Cake options: Vanilla, Chocolate, Carrot Cinnamon. Filling options: Lemon curd, Passion curd, Orange curd, Berry compote, Cream Cheese.",
-    image: "/images/cake-1kg.jpg",
+    image: "/images/cakes.jpeg",
+    description: "Layered cake with swiss meringue butter cream frosting and a filling of your choice. Cake flavours: Vanilla, Chocolate, Carrot Cinnamon. Fillings: Lemon curd, Passion curd, Orange curd, Berry compote, Cream Cheese.",
     options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
   },
   {
@@ -40,8 +40,8 @@ const PRODUCTS = [
     price: 6000,
     category: "Cake",
     featured: false,
-    description: "Layered cake with swiss meringue butter cream frosting and a filling of your choice. Cake options: Vanilla, Chocolate, Carrot Cinnamon. Filling options: Lemon curd, Passion curd, Orange curd, Berry compote, Cream Cheese.",
-    image: "/images/cake-1.5kg.jpg",
+    image: "/images/cakes1.jpeg",
+    description: "Layered cake with swiss meringue butter cream frosting and a filling of your choice. Cake flavours: Vanilla, Chocolate, Carrot Cinnamon. Fillings: Lemon curd, Passion curd, Orange curd, Berry compote, Cream Cheese.",
     options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
   },
   {
@@ -49,18 +49,19 @@ const PRODUCTS = [
     price: 8000,
     category: "Cake",
     featured: false,
-    description: "Layered cake with swiss meringue butter cream frosting and a filling of your choice. Cake options: Vanilla, Chocolate, Carrot Cinnamon. Filling options: Lemon curd, Passion curd, Orange curd, Berry compote, Cream Cheese.",
-    image: "/images/cake-2kg.jpg",
+    image: "/images/cakes2.jpeg",
+    description: "Layered cake with swiss meringue butter cream frosting and a filling of your choice. Cake flavours: Vanilla, Chocolate, Carrot Cinnamon. Fillings: Lemon curd, Passion curd, Orange curd, Berry compote, Cream Cheese.",
     options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
   },
-  // ── Loaves ──
+
+  // ── LOAVES ─────────────────────────────────────────────────────────────
   {
     name: "Single Loaf",
     price: 1500,
     category: "Loaf",
     featured: true,
-    description: "Freshly baked loaf in your choice of flavour. Loaf options: Vanilla, Chocolate, Chocolate Mint, Carrot Cinnamon, Banana.",
-    image: "/images/loaf-single.jpg",
+    image: "/images/Backery1.jpeg",
+    description: "Freshly baked loaf in your choice of flavour. Options: Vanilla, Chocolate, Chocolate Mint, Carrot Cinnamon, Banana.",
     options: ["Vanilla", "Chocolate", "Chocolate Mint", "Carrot Cinnamon", "Banana"],
   },
   {
@@ -68,28 +69,30 @@ const PRODUCTS = [
     price: 3000,
     category: "Loaf",
     featured: false,
-    description: "Two freshly baked loaves in your choice of flavours. Loaf options: Vanilla, Chocolate, Chocolate Mint, Carrot Cinnamon, Banana.",
-    image: "/images/loaf-double.jpg",
+    image: "/images/Backery2.jpeg",
+    description: "Two freshly baked loaves in your choice of flavours. Options: Vanilla, Chocolate, Chocolate Mint, Carrot Cinnamon, Banana.",
     options: ["Vanilla", "Chocolate", "Chocolate Mint", "Carrot Cinnamon", "Banana"],
   },
-  // ── Cupcakes ──
+
+  // ── CUPCAKES ───────────────────────────────────────────────────────────
   {
     name: "Cupcakes – Dozen (12 pcs)",
     price: 1800,
     category: "Cupcake",
     featured: true,
+    image: "/images/Backery3.jpeg",
     description: "A dozen (12 pieces) of butter cream frosted cupcakes. Perfect for birthdays, events, or a sweet treat for the whole team.",
-    image: "/images/cupcakes.jpg",
     options: [],
   },
-  // ── Specials ──
+
+  // ── SPECIALS ───────────────────────────────────────────────────────────
   {
     name: "Fruit Cake",
     price: 5000,
     category: "Special",
     featured: true,
+    image: "/images/cakes3.jpeg",
     description: "A rich, moist fruit cake packed with premium dried fruits. Great for celebrations, gifting, and festive occasions.",
-    image: "/images/fruit-cake.jpg",
     options: [],
   },
   {
@@ -97,18 +100,19 @@ const PRODUCTS = [
     price: 9000,
     category: "Special",
     featured: true,
+    image: "/images/cakes4.jpeg",
     description: "Our showstopper large celebration cake — ideal for weddings, milestones, and big birthdays. Custom decorated to your occasion.",
-    image: "/images/celebration-cake.jpg",
     options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
   },
-  // ── Cookies ──
+
+  // ── COOKIES ────────────────────────────────────────────────────────────
   {
     name: "Cookies – Full Batch",
     price: 1800,
     category: "Cookie",
     featured: false,
+    image: "/images/cookies.jpeg",
     description: "A full batch of freshly baked cookies. Available in Chocolate Chip or Ginger. Crispy on the outside, chewy on the inside.",
-    image: "/images/cookies.jpg",
     options: ["Chocolate Chip", "Ginger"],
   },
 ];
@@ -120,7 +124,7 @@ async function seed() {
   const User    = mongoose.models.User    || mongoose.model("User",    UserSchema);
   const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
 
-  // ── Owner account ──────────────────────────────────────────────────────
+  // Owner account
   const ownerEmail = "owner@teaterrific.com";
   const existing   = await User.findOne({ email: ownerEmail });
   if (!existing) {
@@ -137,18 +141,20 @@ async function seed() {
     console.log("ℹ️   Owner account already exists, skipping.");
   }
 
-  // ── Products ──────────────────────────────────────────────────────────
+  // Products
   const count = await Product.countDocuments();
   if (count === 0 || force) {
     if (force) { await Product.deleteMany({}); console.log("🗑️   Cleared existing products."); }
     await Product.insertMany(PRODUCTS.map((p) => ({ ...p, available: true })));
-    console.log(`✅  ${PRODUCTS.length} products seeded from the Tea-rific Treats menu.`);
+    console.log(`✅  ${PRODUCTS.length} products seeded.`);
+    console.log("\n📸  Image mapping used:");
+    PRODUCTS.forEach((p) => console.log(`    ${p.image.padEnd(32)}  →  ${p.name}`));
   } else {
     console.log(`ℹ️   ${count} products already exist. Run with --force to re-seed.`);
   }
 
   await mongoose.disconnect();
-  console.log("🎉  Seed complete!");
+  console.log("\n🎉  Seed complete!");
 }
 
 seed().catch((err) => { console.error("Seed failed:", err); process.exit(1); });
