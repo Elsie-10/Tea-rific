@@ -9,7 +9,7 @@ A full-stack web application for Tea-Terrific Bakery. Customers browse products,
 | Layer | Technology |
 |---|---|
 | Frontend & Backend | Next.js 14 (App Router) |
-| Database | MongoDB Atlas |
+| Database | Supabase |
 | Authentication | NextAuth.js (JWT) |
 | Payments | M-Pesa Daraja API (STK Push) |
 | Styling | Tailwind CSS |
@@ -45,14 +45,14 @@ tea-terrific/
 ├── context/
 │   └── CartContext.jsx             # Cart state (localStorage)
 ├── lib/
-│   ├── mongodb.js                  # DB connection (cached)
+│   ├── supabase.js                 # Supabase client helpers
 │   └── mpesa.js                    # Daraja API helpers
 ├── models/
 │   ├── Product.js
 │   ├── Order.js
 │   └── User.js
 ├── middleware.js                   # Protects /admin/* routes
-└── scripts/seed.js                 # Bootstrap DB
+└── scripts/                        # Helper scripts
 ```
 
 ---
@@ -82,11 +82,10 @@ cp .env.example .env.local
 # Edit .env.local with your values
 ```
 
-### 3. Set up MongoDB Atlas
-1. Create a free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
-2. Create a database user
-3. Whitelist your IP (or `0.0.0.0/0` for dev)
-4. Copy the connection string into `MONGODB_URI`
+### 3. Set up Supabase
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Copy your project URL and anon/service role keys
+3. Add them to `.env.local` as `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
 
 ### 4. Set up M-Pesa Daraja
 1. Register at [developer.safaricom.co.ke](https://developer.safaricom.co.ke)
@@ -94,15 +93,8 @@ cp .env.example .env.local
 3. Use the sandbox shortcode `174379` and test passkey for development
 4. Set `MPESA_ENV=sandbox` in `.env.local`
 
-### 5. Seed the database
-```bash
-npm run seed
-```
-This creates:
-- Admin account: `admin@teaterrific.com` / `Admin@2024!`
-- 8 sample products
-
-**⚠️ Change the admin password after first login!**
+### 5. Seed your Supabase data
+Populate your Supabase tables with your initial products and any required starter records through the Supabase dashboard or your preferred local script.
 
 ### 6. Run the development server
 ```bash
@@ -129,7 +121,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## M-Pesa Payment Flow
 
 1. Customer fills checkout form (name, phone, delivery location)
-2. App creates an order in MongoDB (`paymentStatus: "Pending"`)
+2. App records the order in Supabase (`paymentStatus: "Pending"`)
 3. App calls `/api/mpesa/stkpush` → sends STK Push to customer's phone
 4. Customer enters M-Pesa PIN on their phone
 5. Safaricom calls `/api/mpesa/callback` with payment result
