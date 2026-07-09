@@ -101,27 +101,28 @@ create policy "Public can read available products"
   on products for select
   using (available = true);
 
-  -- ── COMMENTS ──────────────────────────────────────────────
--- Public comments visible to all customers on the About page
+ create extension if not exists "uuid-ossp";
+
 create table if not exists comments (
   id         uuid primary key default uuid_generate_v4(),
-  user_id    uuid references users(id) on delete set null,
+  user_id    uuid,
   user_name  text not null,
-  body       text not null check (char_length(body) >= 3 and char_length(body) <= 500),
+  body       text not null,
   created_at timestamptz default now()
 );
 
 create index if not exists idx_comments_created on comments(created_at desc);
 
+-- Allow anyone to read comments
 alter table comments enable row level security;
 
--- Anyone can read comments
-create policy "Public can read comments"
-  on comments for select using (true);
+create policy "Public read comments"
+  on comments for select
+  using (true);
 
--- ── Run this in Supabase SQL Editor to add the comments table ──
-
-
+create policy "Service role insert comments"
+  on comments for insert
+  with check (true);
 -- ============================================================
 -- Done. Run the seed script next: node scripts/seed.js
 -- ============================================================
