@@ -3,59 +3,87 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+// POST /api/orders — customer places order, appears on dashboard immediately
 export async function POST(request) {
   try {
-    const { customerName, phone, location, items, total, userId } = await request.json();
-    if (!customerName || !phone || !location || !items?.length || !total) {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
-    }
+    const body = await request.json();
+    const { customerName, phone, location, items, total, userId } = body;
 
+    if (!customerName?.trim())
+      return NextResponse.json({ success: false, error: "Customer name is required." }, { status: 400 });
+    if (!phone?.trim())
+      return NextResponse.json({ success: false, error: "Phone number is required." }, { status: 400 });
+    if (!location?.trim())
+      return NextResponse.json({ success: false, error: "Delivery location is required." }, { status: 400 });
+    if (!items || !Array.isArray(items) || items.length === 0)
+      return NextResponse.json({ success: false, error: "Order must have at least one item." }, { status: 400 });
+    if (!total || Number(total) <= 0)
+      return NextResponse.json({ success: false, error: "Order total is invalid." }, { status: 400 });
+
+    // Create order — visible on owner dashboard immediately with Pending status
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
       .insert({
-        customer_name: customerName.trim(),
-        phone: phone.trim(),
-        location: location.trim(),
-        total,
-        user_id: userId || null,
+        customer_name:  customerName.trim(),
+        phone:          phone.trim(),
+        location:       location.trim(),
+        total:          Number(total),
+        user_id:        userId || null,
         payment_status: "Pending",
-        order_status: "Pending",
+        order_status:   "Pending",
       })
       .select()
       .single();
 
-    if (orderErr) throw new Error(orderErr.message);
+    if (orderErr) {
+      console.error("Order insert error:", orderErr);
+      return NextResponse.json({ success: false, error: orderErr.message }, { status: 500 });
+    }
 
-    const { error: itemsErr } = await supabaseAdmin.from("order_items").insert(
-      items.map((i) => ({
-        order_id: order.id,
-        product_id: i.productId || null,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-        image: i.image || null,
-      }))
-    );
-    if (itemsErr) throw new Error(itemsErr.message);
+    // Insert order items
+    const { error: itemsErr } = await supabaseAdmin
+      .from("order_items")
+      .insert(
+        items.map((i) => ({
+          order_id:   order.id,
+          product_id: i.productId || i._id || null,
+          name:       i.name,
+          price:      Number(i.price),
+          quantity:   Number(i.quantity),
+          image:      i.image || null,
+        }))
+      );
+
+    if (itemsErr) console.error("Order items insert error:", itemsErr);
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });
   } catch (err) {
+    console.error("POST /api/orders crashed:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
 
+// GET /api/orders — owner only
 export async function GET(request) {
   try {
+    // Fix: pass request to getServerSession for App Router compatibility
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "owner") {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+    if (!session) {
+      console.log("GET /api/orders — no session found");
+      return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
+    }
+
+    if (session.user.role !== "owner") {
+      console.log("GET /api/orders — role is:", session.user.role);
+      return NextResponse.json({ success: false, error: "Owner access only." }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const from = (page - 1) * limit;
+    const page   = Math.max(1, parseInt(searchParams.get("page")  || "1"));
+    const limit  = Math.min(50, parseInt(searchParams.get("limit") || "20"));
+    const from   = (page - 1) * limit;
 
     let query = supabaseAdmin
       .from("orders")
@@ -63,17 +91,31 @@ export async function GET(request) {
       .order("created_at", { ascending: false })
       .range(from, from + limit - 1);
 
-    if (status) query = query.eq("order_status", status);
+    if (status && status !== "All") {
+      query = query.eq("order_status", status);
+    }
 
     const { data, error, count } = await query;
-    if (error) throw new Error(error.message);
+
+    if (error) {
+      console.error("GET /api/orders Supabase error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    console.log(`GET /api/orders — returning ${data?.length || 0} orders`);
 
     return NextResponse.json({
       success: true,
-      data,
-      pagination: { total: count || 0, page, limit, pages: Math.ceil((count || 0) / limit) },
+      data:    data || [],
+      pagination: {
+        total: count || 0,
+        page,
+        limit,
+        pages: Math.ceil((count || 0) / limit),
+      },
     });
   } catch (err) {
+    console.error("GET /api/orders crashed:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  ShoppingBag, Clock, ChefHat, CheckCircle, TrendingUp,
-  LogOut, RefreshCw, X, Phone, MapPin, User, Calendar, CreditCard,
+  ShoppingBag, Clock, ChefHat, CheckCircle,
+  TrendingUp, LogOut, RefreshCw, X,
+  Phone, MapPin, User, Calendar, CreditCard,
 } from "lucide-react";
 
 const STATUS_OPTIONS = ["Pending", "Preparing", "Ready", "Completed", "Cancelled"];
@@ -24,7 +25,7 @@ const PAYMENT_COLORS = {
   Failed:  "bg-red-100 text-red-700",
 };
 
-// ── Order Detail Modal ────────────────────────────────────────────────────
+// ── Order Detail Modal ────────────────────────────────────────
 function OrderModal({ order, onClose, onStatusUpdate }) {
   if (!order) return null;
   return (
@@ -32,14 +33,13 @@ function OrderModal({ order, onClose, onStatusUpdate }) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
-        {/* Header */}
         <div className="sticky top-0 bg-white border-b border-[#F2E0D0] px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <div>
             <h2 className="font-serif text-xl font-bold text-[#2C2C2C]">Order Details</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               {new Date(order.created_at).toLocaleDateString("en-KE", {
-                weekday: "long", day: "numeric", month: "long", year: "numeric",
-                hour: "2-digit", minute: "2-digit",
+                weekday: "long", day: "numeric", month: "long",
+                year: "numeric", hour: "2-digit", minute: "2-digit",
               })}
             </p>
           </div>
@@ -49,37 +49,39 @@ function OrderModal({ order, onClose, onStatusUpdate }) {
         </div>
 
         <div className="px-6 py-5 space-y-6">
-
-          {/* Customer Info */}
-          <div className="bg-[#FDF8F0] rounded-xl p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Customer</h3>
+          {/* Customer */}
+          <div className="bg-[#FDF8F0] rounded-xl p-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Customer</h3>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[#6B3F1F] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {order.customer_name?.charAt(0)?.toUpperCase()}
               </div>
-              <div>
-                <p className="font-semibold text-[#2C2C2C] flex items-center gap-1">
+              <div className="space-y-1">
+                <p className="font-semibold text-[#2C2C2C] flex items-center gap-1 text-sm">
                   <User className="w-3.5 h-3.5 text-gray-400" /> {order.customer_name}
                 </p>
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-gray-500 flex items-center gap-1">
                   <Phone className="w-3.5 h-3.5 text-gray-400" />
-                  <a href={`tel:${order.phone}`} className="hover:text-[#6B3F1F] hover:underline">{order.phone}</a>
+                  <a href={`tel:${order.phone}`} className="hover:text-[#6B3F1F] hover:underline">
+                    {order.phone}
+                  </a>
                 </p>
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                <p className="text-sm text-gray-500 flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-gray-400" /> {order.location}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Items Ordered */}
+          {/* Items */}
           <div>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Items Ordered</h3>
             <div className="space-y-2">
               {order.order_items?.length > 0 ? order.order_items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3 bg-white border border-[#F2E0D0] rounded-xl p-3">
                   {item.image && (
-                    <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-[#F2E0D0]"
+                    <img src={item.image} alt={item.name}
+                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-[#F2E0D0]"
                       onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   )}
                   <div className="flex-1 min-w-0">
@@ -94,18 +96,18 @@ function OrderModal({ order, onClose, onStatusUpdate }) {
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-gray-400">No item details available.</p>
+                <p className="text-sm text-gray-400 italic">No item details available.</p>
               )}
             </div>
-
-            {/* Total */}
             <div className="flex justify-between items-center mt-4 pt-4 border-t border-[#F2E0D0]">
               <span className="font-semibold text-[#2C2C2C]">Total</span>
-              <span className="text-xl font-bold text-[#6B3F1F]">Ksh {Number(order.total).toLocaleString()}</span>
+              <span className="text-xl font-bold text-[#6B3F1F]">
+                Ksh {Number(order.total).toLocaleString()}
+              </span>
             </div>
           </div>
 
-          {/* Payment Status */}
+          {/* Payment */}
           <div className="flex items-center gap-3">
             <CreditCard className="w-4 h-4 text-gray-400" />
             <span className="text-sm text-gray-600">Payment:</span>
@@ -117,9 +119,11 @@ function OrderModal({ order, onClose, onStatusUpdate }) {
             )}
           </div>
 
-          {/* Update Order Status */}
+          {/* Update status */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Update Order Status</h3>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Update Order Status
+            </h3>
             <div className="flex flex-wrap gap-2">
               {STATUS_OPTIONS.map((s) => (
                 <button
@@ -142,72 +146,111 @@ function OrderModal({ order, onClose, onStatusUpdate }) {
   );
 }
 
-// ── Main Dashboard ────────────────────────────────────────────────────────
+// ── Main Dashboard ────────────────────────────────────────────
 export default function OwnerDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [stats, setStats]         = useState(null);
-  const [orders, setOrders]       = useState([]);
-  const [filter, setFilter]       = useState("All");
-  const [loading, setLoading]     = useState(true);
-  const [selected, setSelected]   = useState(null);
+  const [stats, setStats]       = useState(null);
+  const [orders, setOrders]     = useState([]);
+  const [filter, setFilter]     = useState("All");
+  const [loading, setLoading]   = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [debugMsg, setDebugMsg] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth/login");
-    else if (status === "authenticated" && session?.user?.role !== "owner") router.push("/");
+    if (status === "authenticated" && session?.user?.role !== "owner") router.push("/");
   }, [status, session, router]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
+    setDebugMsg("");
     try {
+      const url = filter === "All" ? "/api/orders" : `/api/orders?status=${filter}`;
       const [statsRes, ordersRes] = await Promise.all([
         fetch("/api/owner/stats"),
-        fetch(filter === "All" ? "/api/orders" : `/api/orders?status=${filter}`),
+        fetch(url),
       ]);
-      const [statsData, ordersData] = await Promise.all([statsRes.json(), ordersRes.json()]);
-      if (statsData.success)  setStats(statsData.data);
-      if (ordersData.success) setOrders(ordersData.data);
+
+      // ── Debug: log raw responses ──────────────────────────
+      const statsText  = await statsRes.text();
+      const ordersText = await ordersRes.text();
+
+      console.log("Stats status:", statsRes.status, "body:", statsText.slice(0, 200));
+      console.log("Orders status:", ordersRes.status, "body:", ordersText.slice(0, 200));
+
+      // Parse safely
+      let statsData, ordersData;
+      try { statsData  = JSON.parse(statsText);  } catch { setDebugMsg(`Stats parse error: ${statsText.slice(0,100)}`); }
+      try { ordersData = JSON.parse(ordersText); } catch { setDebugMsg(`Orders parse error: ${ordersText.slice(0,100)}`); }
+
+      if (statsData?.success)  setStats(statsData.data);
+      else setDebugMsg(`Stats error: ${statsData?.error || statsRes.status}`);
+
+      if (ordersData?.success) {
+        setOrders(ordersData.data);
+        console.log("Orders loaded:", ordersData.data.length);
+      } else {
+        setDebugMsg(`Orders error: ${ordersData?.error || ordersRes.status}`);
+        console.log("Orders failed:", ordersData);
+      }
+
+    } catch (err) {
+      console.error("fetchData crashed:", err);
+      setDebugMsg(`Fetch error: ${err.message}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
   useEffect(() => {
     if (session?.user?.role === "owner") fetchData();
-  }, [filter, session]);
+  }, [filter, session, fetchData]);
 
   const updateOrderStatus = async (orderId, orderStatus) => {
-    const res = await fetch(`/api/orders/${orderId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderStatus }),
-    });
-    if (res.ok) {
-      // Update locally so modal reflects change immediately
-      setOrders((prev) =>
-        prev.map((o) => o.id === orderId ? { ...o, order_status: orderStatus } : o)
-      );
-      if (selected?.id === orderId) {
-        setSelected((prev) => ({ ...prev, order_status: orderStatus }));
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method:  "PUT",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ orderStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) =>
+          prev.map((o) => o.id === orderId ? { ...o, order_status: orderStatus } : o)
+        );
+        if (selected?.id === orderId) {
+          setSelected((prev) => ({ ...prev, order_status: orderStatus }));
+        }
       }
-      fetchData();
+    } catch (err) {
+      console.error("Status update failed:", err);
     }
   };
 
-  if (status === "loading" || !session || session.user.role !== "owner") return null;
+  if (status === "loading" || !session || session.user.role !== "owner") {
+    return (
+      <div className="min-h-screen bg-[#FDF8F0] flex items-center justify-center">
+        <p className="text-gray-400">Loading dashboard…</p>
+      </div>
+    );
+  }
 
   const statCards = [
-    { label: "Total Orders",   value: stats?.totalOrders      ?? "—", icon: ShoppingBag, color: "bg-[#6B3F1F]" },
-    { label: "Pending",        value: stats?.pendingOrders    ?? "—", icon: Clock,       color: "bg-yellow-500" },
-    { label: "Preparing",      value: stats?.preparingOrders  ?? "—", icon: ChefHat,     color: "bg-blue-500"   },
-    { label: "Completed",      value: stats?.completedOrders  ?? "—", icon: CheckCircle, color: "bg-[#4A7C59]"  },
-    { label: "Revenue (Ksh)",  value: stats?.totalRevenue != null ? Number(stats.totalRevenue).toLocaleString() : "—", icon: TrendingUp, color: "bg-[#D4A843]" },
+    { label: "Total Orders",  value: stats?.totalOrders      ?? "—", icon: ShoppingBag, color: "bg-[#6B3F1F]" },
+    { label: "Pending",       value: stats?.pendingOrders    ?? "—", icon: Clock,       color: "bg-yellow-500" },
+    { label: "Preparing",     value: stats?.preparingOrders  ?? "—", icon: ChefHat,     color: "bg-blue-500"   },
+    { label: "Completed",     value: stats?.completedOrders  ?? "—", icon: CheckCircle, color: "bg-[#4A7C59]"  },
+    {
+      label: "Revenue (Ksh)",
+      value: stats?.totalRevenue != null ? Number(stats.totalRevenue).toLocaleString() : "—",
+      icon: TrendingUp, color: "bg-[#D4A843]",
+    },
   ];
 
   return (
     <div className="min-h-screen bg-[#FDF8F0]">
-
       {/* Header */}
       <header className="bg-[#6B3F1F] text-white px-6 py-4 flex items-center justify-between">
         <div>
@@ -227,6 +270,13 @@ export default function OwnerDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
 
+        {/* Debug message — only shows if there is an error */}
+        {debugMsg && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+            <strong>Debug:</strong> {debugMsg}
+          </div>
+        )}
+
         {/* Stat cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
           {statCards.map(({ label, value, icon: Icon, color }) => (
@@ -240,7 +290,7 @@ export default function OwnerDashboard() {
           ))}
         </div>
 
-        {/* Orders header + filters */}
+        {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h2 className="font-serif text-2xl font-bold text-[#2C2C2C]">Orders</h2>
           <div className="flex items-center gap-2 flex-wrap">
@@ -249,13 +299,19 @@ export default function OwnerDashboard() {
                 key={s}
                 onClick={() => setFilter(s)}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
-                  filter === s ? "bg-[#6B3F1F] text-white" : "bg-white text-gray-600 border border-gray-200 hover:border-[#6B3F1F]"
+                  filter === s
+                    ? "bg-[#6B3F1F] text-white"
+                    : "bg-white text-gray-600 border border-gray-200 hover:border-[#6B3F1F]"
                 }`}
               >
                 {s}
               </button>
             ))}
-            <button onClick={fetchData} className="p-2 rounded-full hover:bg-white transition" aria-label="Refresh">
+            <button
+              onClick={fetchData}
+              className="p-2 rounded-full hover:bg-white transition"
+              aria-label="Refresh"
+            >
               <RefreshCw className={`w-4 h-4 text-gray-500 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
@@ -267,8 +323,12 @@ export default function OwnerDashboard() {
         ) : orders.length === 0 ? (
           <div className="card p-16 text-center text-gray-400">
             <p className="text-5xl mb-3">📋</p>
-            <p className="text-lg font-semibold">No orders yet</p>
-            <p className="text-sm mt-1">New orders will appear here.</p>
+            <p className="text-lg font-semibold">No orders found</p>
+            <p className="text-sm mt-1">
+              {filter === "All"
+                ? "Orders will appear here as customers place them."
+                : `No orders with status "${filter}".`}
+            </p>
           </div>
         ) : (
           <div className="card overflow-x-auto">
@@ -289,19 +349,29 @@ export default function OwnerDashboard() {
                     className="border-b border-[#F2E0D0] hover:bg-[#FDF8F0] transition cursor-pointer"
                     onClick={() => setSelected(order)}
                   >
-                    <td className="px-4 py-3 font-semibold text-[#2C2C2C] whitespace-nowrap">{order.customer_name}</td>
+                    <td className="px-4 py-3 font-semibold text-[#2C2C2C] whitespace-nowrap">
+                      {order.customer_name}
+                    </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                      <a href={`tel:${order.phone}`} className="hover:text-[#6B3F1F] hover:underline" onClick={(e) => e.stopPropagation()}>
+                      <a
+                        href={`tel:${order.phone}`}
+                        className="hover:text-[#6B3F1F] hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {order.phone}
                       </a>
                     </td>
                     <td className="px-4 py-3 text-gray-600 max-w-[140px] truncate">{order.location}</td>
                     <td className="px-4 py-3 text-gray-600">
                       {order.order_items?.slice(0, 2).map((i) => (
-                        <span key={i.id} className="block text-xs whitespace-nowrap">{i.quantity}× {i.name}</span>
+                        <span key={i.id} className="block text-xs whitespace-nowrap">
+                          {i.quantity}× {i.name}
+                        </span>
                       ))}
                       {order.order_items?.length > 2 && (
-                        <span className="text-xs text-gray-400">+{order.order_items.length - 2} more</span>
+                        <span className="text-xs text-gray-400">
+                          +{order.order_items.length - 2} more
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 font-semibold text-[#6B3F1F] whitespace-nowrap text-right">
@@ -320,7 +390,10 @@ export default function OwnerDashboard() {
                     <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(order.created_at).toLocaleDateString("en-KE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        {new Date(order.created_at).toLocaleDateString("en-KE", {
+                          day: "numeric", month: "short",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -339,7 +412,6 @@ export default function OwnerDashboard() {
         )}
       </main>
 
-      {/* Order detail modal */}
       {selected && (
         <OrderModal
           order={selected}
