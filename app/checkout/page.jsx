@@ -10,18 +10,18 @@ import { Smartphone, MapPin, User, CheckCircle, Loader, ShoppingBag } from "luci
 
 export default function CheckoutPage() {
   const { cart, totalAmount, clearCart } = useCart();
-  const { data: session } = useSession();
-  const router = useRouter();
+  const { data: session }               = useSession();
+  const router                          = useRouter();
 
-  const [form, setForm]     = useState({
-    customerName: session?.user?.name || "",
+  const [form, setForm] = useState({
+    customerName: session?.user?.name  || "",
     phone:        session?.user?.phone || "",
     location:     "",
   });
-  const [errors, setErrors]   = useState({});
-  const [step, setStep]       = useState("form"); // form | success
-  const [orderId, setOrderId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [errors,    setErrors]    = useState({});
+  const [step,      setStep]      = useState("form"); // form | success
+  const [orderId,   setOrderId]   = useState(null);
+  const [loading,   setLoading]   = useState(false);
   const [serverErr, setServerErr] = useState("");
 
   // Empty cart guard
@@ -32,7 +32,7 @@ export default function CheckoutPage() {
         <div className="flex flex-col items-center justify-center py-32 text-center px-4">
           <ShoppingBag className="w-16 h-16 text-[#D4A843] mb-4" />
           <h2 className="font-serif text-3xl font-bold text-[#2C2C2C] mb-2">Your cart is empty</h2>
-          <p className="text-gray-500 mb-6">Add some items before checking out.</p>
+          <p className="text-gray-500 mb-6">Customise and add items from the menu first.</p>
           <Link href="/" className="btn-primary">Browse Menu</Link>
         </div>
       </div>
@@ -41,9 +41,9 @@ export default function CheckoutPage() {
 
   const validate = () => {
     const e = {};
-    if (!form.customerName.trim())  e.customerName = "Full name is required.";
-    if (!form.phone.trim())         e.phone        = "Phone number is required.";
-    if (!form.location.trim())      e.location     = "Delivery location is required.";
+    if (!form.customerName.trim()) e.customerName = "Full name is required.";
+    if (!form.phone.trim())        e.phone        = "Phone number is required.";
+    if (!form.location.trim())     e.location     = "Delivery location is required.";
     return e;
   };
 
@@ -63,34 +63,30 @@ export default function CheckoutPage() {
           phone:        form.phone.trim(),
           location:     form.location.trim(),
           userId:       session?.user?.id || null,
+          total:        totalAmount,
           items: cart.map((i) => ({
-            productId: i.id || i._id || null,
-            name:      i.name,
-            price:     i.price,
-            quantity:  i.quantity,
-            image:     i.image || null,
+            productId:  i.id || i._id || null,
+            name:       i.name,
+            price:      i.price,
+            quantity:   i.quantity,
+            image:      i.image      || null,
+            customNote: i.customNote || null,  // ← flavour, size, filling, occasion etc
           })),
-          total: totalAmount,
         }),
       });
 
-      // Guard: if server returned HTML (500/404) instead of JSON
+      // Guard against HTML error responses
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         const text = await res.text();
-        console.error("Non-JSON response from /api/orders:", text.slice(0, 300));
-        throw new Error("Server error — please try again or contact us.");
+        console.error("Non-JSON from /api/orders:", text.slice(0, 300));
+        throw new Error("Server error — please try again.");
       }
 
       const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to place order.");
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to place order.");
-      }
-
-      // Supabase returns `id` not `_id`
-      const newOrderId = data.data.id;
-      setOrderId(newOrderId);
+      setOrderId(data.data.id);
       clearCart();
       setStep("success");
 
@@ -102,7 +98,7 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Success screen ────────────────────────────────────────────────────
+  // ── Success screen ─────────────────────────────────────────
   if (step === "success") {
     return (
       <div className="min-h-screen bg-[#FDF8F0]">
@@ -110,16 +106,23 @@ export default function CheckoutPage() {
         <div className="flex flex-col items-center justify-center py-32 text-center px-4">
           <CheckCircle className="w-20 h-20 text-[#4A7C59] mb-6" />
           <h1 className="font-serif text-4xl font-bold text-[#2C2C2C] mb-3">Order Placed!</h1>
-          <p className="text-gray-600 mb-1">Thank you, <strong>{form.customerName}</strong>!</p>
+          <p className="text-gray-600 mb-1">
+            Thank you, <strong>{form.customerName}</strong>!
+          </p>
           <p className="text-gray-500 text-sm mb-2 max-w-md">
-            Your order has been received and will appear on our dashboard immediately.
-            The baker will be in touch to arrange payment and delivery.
+            Your order has been received. The baker will contact you to confirm
+            details and arrange the 50% deposit payment.
           </p>
           <p className="text-[#6B3F1F] text-sm font-semibold mb-8">
-            📞 You can also call us on <a href="tel:0720216244" className="underline">0720 216 244</a>
+            📞 You can also call us on{" "}
+            <a href="tel:0720216244" className="underline">0720 216 244</a>
           </p>
           <div className="flex gap-4 flex-wrap justify-center">
-            <Link href={`/order/${orderId}`} className="btn-secondary">Track My Order</Link>
+            {orderId && (
+              <Link href={`/order/${orderId}`} className="btn-secondary">
+                Track My Order
+              </Link>
+            )}
             <Link href="/" className="btn-outline">Order More</Link>
           </div>
         </div>
@@ -127,14 +130,14 @@ export default function CheckoutPage() {
     );
   }
 
-  // ── Checkout form ─────────────────────────────────────────────────────
+  // ── Checkout form ──────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#FDF8F0]">
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-10">
         <h1 className="font-serif text-3xl font-bold text-[#2C2C2C] mb-2">Checkout</h1>
         <p className="text-gray-500 text-sm mb-8">
-          Place your order and we will contact you to arrange payment and delivery.
+          Place your order and we will contact you to confirm and arrange payment.
         </p>
 
         {serverErr && (
@@ -147,7 +150,6 @@ export default function CheckoutPage() {
 
           {/* Form */}
           <div className="card p-6 space-y-5 h-fit">
-
             <div>
               <label className="block text-sm font-semibold text-[#2C2C2C] mb-1">
                 <User className="inline w-4 h-4 mr-1" />Full Name
@@ -158,7 +160,9 @@ export default function CheckoutPage() {
                 value={form.customerName}
                 onChange={(e) => setForm({ ...form, customerName: e.target.value })}
               />
-              {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
+              {errors.customerName && (
+                <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>
+              )}
             </div>
 
             <div>
@@ -171,7 +175,9 @@ export default function CheckoutPage() {
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
               />
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+              )}
             </div>
 
             <div>
@@ -184,7 +190,9 @@ export default function CheckoutPage() {
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
               />
-              {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
+              {errors.location && (
+                <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+              )}
             </div>
 
             <button
@@ -199,22 +207,30 @@ export default function CheckoutPage() {
             </button>
 
             <p className="text-xs text-gray-400 text-center">
-              Orders must be placed 24 hrs in advance · 50% deposit required
+              Orders 24 hrs in advance · 50% deposit to confirm
             </p>
           </div>
 
           {/* Order summary */}
           <div className="card p-5 h-fit">
             <h2 className="font-serif text-lg font-bold text-[#2C2C2C] mb-4">Your Order</h2>
-            <div className="space-y-3 mb-4">
+            <div className="space-y-4 mb-4">
               {cart.map((item) => (
-                <div key={item._id || item.id} className="flex justify-between text-sm">
-                  <span className="text-gray-700 flex-1 pr-2">
-                    {item.quantity}× {item.name}
-                  </span>
-                  <span className="font-semibold text-[#6B3F1F] whitespace-nowrap">
-                    Ksh {(item.price * item.quantity).toLocaleString()}
-                  </span>
+                <div key={item._id || item.id}>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-700 flex-1 pr-2 font-medium">
+                      {item.quantity}× {item.name}
+                    </span>
+                    <span className="font-bold text-[#6B3F1F] whitespace-nowrap">
+                      Ksh {(item.price * item.quantity).toLocaleString()}
+                    </span>
+                  </div>
+                  {/* Show the customer's choices to them for confirmation */}
+                  {item.customNote && (
+                    <p className="text-xs text-[#4A7C59] mt-0.5 leading-relaxed">
+                      {item.customNote}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -222,6 +238,9 @@ export default function CheckoutPage() {
               <span>Total</span>
               <span className="text-[#6B3F1F]">Ksh {totalAmount.toLocaleString()}</span>
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Filling charges & delivery confirmed separately by baker.
+            </p>
           </div>
         </div>
       </main>

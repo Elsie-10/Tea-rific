@@ -123,6 +123,8 @@ create policy "Public read comments"
 create policy "Service role insert comments"
   on comments for insert
   with check (true);
+
+alter table order_items add column if not exists custom_note text;
 -- ============================================================
 -- Done. Run the seed script next: node scripts/seed.js
 -- ============================================================

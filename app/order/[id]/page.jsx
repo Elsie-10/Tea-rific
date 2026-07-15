@@ -1,98 +1,123 @@
-import Navbar from "@/components/Navbar";
-import { CheckCircle, Clock, ChefHat, Package } from "lucide-react";
+import { NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-const STATUS_STEPS = ["Pending", "Preparing", "Ready", "Completed"];
-const STATUS_ICONS = {
-  Pending: Clock,
-  Preparing: ChefHat,
-  Ready: Package,
-  Completed: CheckCircle,
-};
+// POST /api/orders — customer places order
+// Order appears on owner dashboard immediately with Pending status
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { customerName, phone, location, items, total, userId } = body;
 
-async function getOrder(id) {
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/orders/${id}`, { cache: "no-store" });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.data;
+    // Validation
+    if (!customerName?.trim())
+      return NextResponse.json({ success: false, error: "Customer name is required." }, { status: 400 });
+    if (!phone?.trim())
+      return NextResponse.json({ success: false, error: "Phone number is required." }, { status: 400 });
+    if (!location?.trim())
+      return NextResponse.json({ success: false, error: "Delivery location is required." }, { status: 400 });
+    if (!items || !Array.isArray(items) || items.length === 0)
+      return NextResponse.json({ success: false, error: "Order must have at least one item." }, { status: 400 });
+    if (!total || Number(total) <= 0)
+      return NextResponse.json({ success: false, error: "Order total is invalid." }, { status: 400 });
+
+    // 1. Create the order row
+    const { data: order, error: orderErr } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        customer_name:  customerName.trim(),
+        phone:          phone.trim(),
+        location:       location.trim(),
+        total:          Number(total),
+        user_id:        userId || null,
+        payment_status: "Pending",
+        order_status:   "Pending",
+      })
+      .select()
+      .single();
+
+    if (orderErr) {
+      console.error("Order insert error:", orderErr);
+      return NextResponse.json({ success: false, error: orderErr.message }, { status: 500 });
+    }
+
+    // 2. Insert order items — including customNote so owner sees full spec
+    const orderItems = items.map((i) => ({
+      order_id:    order.id,
+      product_id:  i.productId || i._id || null,
+      name:        i.name,
+      price:       Number(i.price),
+      quantity:    Number(i.quantity),
+      image:       i.image  || null,
+      custom_note: i.customNote || null,   // ← flavour, size, filling, occasion etc
+    }));
+
+    const { error: itemsErr } = await supabaseAdmin
+      .from("order_items")
+      .insert(orderItems);
+
+    if (itemsErr) {
+      console.error("Order items insert error:", itemsErr);
+      // Don't fail the whole order — log and continue
+    }
+
+    return NextResponse.json({ success: true, data: order }, { status: 201 });
+
+  } catch (err) {
+    console.error("POST /api/orders crashed:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
 }
 
-export default async function OrderTrackingPage({ params }) {
-  const order = await getOrder(params.id);
+// GET /api/orders — owner only
+export async function GET(request) {
+  try {
+    const session = await getServerSession(authOptions);
 
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-[#FDF8F0]">
-        <Navbar />
-        <div className="flex flex-col items-center justify-center py-32 text-center px-4">
-          <h2 className="font-serif text-3xl font-bold text-[#2C2C2C] mb-2">Order not found</h2>
-          <p className="text-gray-500">Double-check the link and try again.</p>
-        </div>
-      </div>
-    );
+    if (!session) {
+      return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
+    }
+    if (session.user.role !== "owner") {
+      return NextResponse.json({ success: false, error: "Owner access only." }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+    const page   = Math.max(1, parseInt(searchParams.get("page")  || "1"));
+    const limit  = Math.min(50, parseInt(searchParams.get("limit") || "20"));
+    const from   = (page - 1) * limit;
+
+    let query = supabaseAdmin
+      .from("orders")
+      .select("*, order_items(*)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, from + limit - 1);
+
+    if (status && status !== "All") {
+      query = query.eq("order_status", status);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error("GET /api/orders error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data:    data || [],
+      pagination: {
+        total: count || 0,
+        page,
+        limit,
+        pages: Math.ceil((count || 0) / limit),
+      },
+    });
+
+  } catch (err) {
+    console.error("GET /api/orders crashed:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
-
-  const currentStepIdx = STATUS_STEPS.indexOf(order.orderStatus);
-
-  return (
-    <div className="min-h-screen bg-[#FDF8F0]">
-      <Navbar />
-      <main className="max-w-xl mx-auto px-4 py-12">
-        <h1 className="font-serif text-3xl font-bold text-[#2C2C2C] mb-2">Order Status</h1>
-        <p className="text-gray-500 text-sm mb-8">
-          Hello {order.customerName} · Order placed {new Date(order.createdAt).toLocaleDateString("en-KE")}
-        </p>
-
-        {/* Payment badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold mb-8
-          ${order.paymentStatus === "Paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-          {order.paymentStatus === "Paid" ? "✓ Payment confirmed" : "⏳ Payment pending"}
-        </div>
-
-        {/* Progress */}
-        <div className="card p-6">
-          <div className="flex items-start justify-between">
-            {STATUS_STEPS.map((status, idx) => {
-              const Icon = STATUS_ICONS[status];
-              const done = idx <= currentStepIdx;
-              const active = idx === currentStepIdx;
-              return (
-                <div key={status} className="flex flex-col items-center flex-1">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
-                      ${done ? "bg-[#4A7C59] text-white" : "bg-gray-100 text-gray-400"}
-                      ${active ? "ring-4 ring-[#4A7C59]/20" : ""}`}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <p className={`text-xs font-semibold text-center ${active ? "text-[#4A7C59]" : "text-gray-400"}`}>
-                    {status}
-                  </p>
-                  {/* Connector line */}
-                  {idx < STATUS_STEPS.length - 1 && (
-                    <div className={`absolute hidden`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Horizontal line between steps */}
-          <div className="relative mt-[-2.8rem] mb-10 mx-5 h-0.5 bg-gray-100 -z-10">
-            <div
-              className="h-full bg-[#4A7C59] transition-all duration-500"
-              style={{ width: `${(currentStepIdx / (STATUS_STEPS.length - 1)) * 100}%` }}
-            />
-          </div>
-
-          <div className="mt-4 text-center">
-            <p className="text-2xl font-serif font-bold text-[#2C2C2C]">{order.orderStatus}</p>
-            <p className="text-gray-500 text-sm mt-1">
-              Total: <span className="font-semibold text-[#6B3F1F]">KES {order.total?.toLocaleString()}</span>
-            </p>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
 }
