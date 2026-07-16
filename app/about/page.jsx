@@ -9,7 +9,7 @@ import { Send, Star, MessageCircle, Loader } from "lucide-react";
 const VALUES = [
   { emoji: "🌿", title: "Always Fresh",      body: "Every order is baked fresh — nothing is pre-made or stored overnight. What you receive is warm, soft, and made with your occasion in mind." },
   { emoji: "🎨", title: "Made for You",      body: "You choose the flavour, the filling, the size. We don't do one-size-fits-all. Every bake is personal, built around exactly what you are dreaming of." },
-  { emoji: "💛", title: "Baked with Heart", body: "Tea-Terrific grew from a genuine love of bringing people joy through food. That feeling goes into every layer, every swirl of frosting, every cookie." },
+  { emoji: "💛", title: "Baked with Heart", body: "Tea-rific grew from a genuine love of bringing people joy through food. That feeling goes into every layer, every swirl of frosting, every cookie." },
   { emoji: "🎉", title: "For Every Moment", body: "Birthdays, weddings, baby showers, office parties, or just a Tuesday — we believe every day is worth celebrating with something delicious." },
 ];
 
@@ -86,9 +86,9 @@ export default function AboutPage() {
       <section className="bg-[#6B3F1F] text-white py-24 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-[#D4A843] text-sm font-semibold uppercase tracking-widest mb-4">Hi, we are so glad you are here 👋</p>
-          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-6 leading-tight">The Tea-Terrific Story</h1>
+          <h1 className="font-serif text-5xl md:text-6xl font-bold mb-6 leading-tight">The Tea-rific Story</h1>
           <p className="text-[#F2E0D0] text-lg leading-relaxed">
-            Tea-Terrific started in a small Nairobi kitchen with one big dream — to turn ordinary days into something worth celebrating.
+            Tea-rific Treats started in a small Nairobi kitchen with one big dream — to turn ordinary days into something worth celebrating.
             What began as a deep love for mixing, frosting, and sharing has grown into a home bakery that families and friends across Nairobi
             trust for their biggest and most personal moments.
           </p>
