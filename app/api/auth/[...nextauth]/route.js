@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabaseAdmin } from "@/lib/supabase";
@@ -8,7 +10,7 @@ export const authOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email:    { label: "Email",    type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -17,7 +19,7 @@ export const authOptions = {
         const { data: user, error } = await supabaseAdmin
           .from("users")
           .select("id, name, email, password, role, phone")
-          .eq("email", credentials.email.toLowerCase())
+          .eq("email", credentials.email.toLowerCase().trim())
           .maybeSingle();
 
         if (error || !user) return null;
@@ -25,31 +27,52 @@ export const authOptions = {
         const valid = await bcrypt.compare(credentials.password, user.password);
         if (!valid) return null;
 
-        return { id: user.id, email: user.email, name: user.name, role: user.role, phone: user.phone };
+        return {
+          id:    user.id,
+          email: user.email,
+          name:  user.name,
+          role:  user.role,
+          phone: user.phone,
+        };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
-        token.id = user.id;
+        token.role  = user.role;
+        token.id    = user.id;
         token.phone = user.phone;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.role = token.role;
-        session.user.id = token.id;
+        session.user.role  = token.role;
+        session.user.id    = token.id;
         session.user.phone = token.phone;
       }
       return session;
     },
   },
-  pages: { signIn: "/auth/login" },
+  pages:   { signIn: "/auth/login" },
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret:  process.env.NEXTAUTH_SECRET,
+  // Critical for Vercel — ensures cookies work on production
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production"
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path:     "/",
+        secure:   process.env.NODE_ENV === "production",
+      },
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);

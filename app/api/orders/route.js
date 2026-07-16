@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
@@ -19,7 +21,6 @@ export async function POST(request) {
     if (!total || Number(total) <= 0)
       return NextResponse.json({ success: false, error: "Order total is invalid." }, { status: 400 });
 
-    // 1. Create order
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -39,35 +40,30 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: orderErr.message }, { status: 500 });
     }
 
-    // 2. Insert order items
-    // product_id must be a valid UUID or null — never a string like "cake-main"
     const orderItems = items.map((i) => {
       const rawId = i.productId || i.id || i._id || null;
-      const isUUID = rawId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
+      const isUUID = rawId &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
       return {
         order_id:    order.id,
-        product_id:  isUUID ? rawId : null,   // only save if valid UUID
+        product_id:  isUUID ? rawId : null,
         name:        String(i.name),
         price:       Number(i.price),
         quantity:    Number(i.quantity),
-        image:       i.image       || null,
-        custom_note: i.customNote  || null,
+        image:       i.image      || null,
+        custom_note: i.customNote || null,
       };
     });
-
-    console.log("Inserting order items:", JSON.stringify(orderItems, null, 2));
 
     const { error: itemsErr } = await supabaseAdmin
       .from("order_items")
       .insert(orderItems);
 
     if (itemsErr) {
-      console.error("Order items insert error:", itemsErr.message, itemsErr.details, itemsErr.hint);
-      // Return the error so we can debug it
+      console.error("Order items error:", itemsErr.message);
       return NextResponse.json({
         success: false,
         error: `Order created but items failed: ${itemsErr.message}`,
-        orderId: order.id,
       }, { status: 500 });
     }
 
@@ -113,7 +109,12 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       data: data || [],
-      pagination: { total: count || 0, page, limit, pages: Math.ceil((count || 0) / limit) },
+      pagination: {
+        total: count || 0,
+        page,
+        limit,
+        pages: Math.ceil((count || 0) / limit),
+      },
     });
 
   } catch (err) {

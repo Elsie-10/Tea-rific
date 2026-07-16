@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
@@ -7,12 +9,10 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session) {
+    if (!session)
       return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
-    }
-    if (session.user.role !== "owner") {
+    if (session.user.role !== "owner")
       return NextResponse.json({ success: false, error: "Owner access only." }, { status: 403 });
-    }
 
     const [total, pending, preparing, completed, revenue] = await Promise.all([
       supabaseAdmin.from("orders").select("*", { count: "exact", head: true }),

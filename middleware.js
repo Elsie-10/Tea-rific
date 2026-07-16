@@ -7,16 +7,21 @@ export default withAuth(
     const token = req.nextauth.token;
 
     // Owner-only routes
-    if (pathname.startsWith("/owner") || pathname.startsWith("/admin")) {
-      if (!token || token.role !== "owner") {
+    if (pathname.startsWith("/owner")) {
+      if (!token) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
+      }
+      if (token.role !== "owner") {
+        return NextResponse.redirect(new URL("/", req.url));
       }
     }
 
-    // Customer-only routes (must be logged in)
+    // Checkout requires any logged-in user
     if (pathname.startsWith("/checkout")) {
       if (!token) {
-        return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${pathname}`, req.url));
+        return NextResponse.redirect(
+          new URL(`/auth/login?callbackUrl=${encodeURIComponent(pathname)}`, req.url)
+        );
       }
     }
 
@@ -24,16 +29,22 @@ export default withAuth(
   },
   {
     callbacks: {
+      // Return true to run middleware, false to skip it
+      // Only protect specific routes — everything else is public
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
-        if (pathname.startsWith("/owner") || pathname.startsWith("/admin")) return !!token;
-        if (pathname.startsWith("/checkout")) return !!token;
-        return true;
+        if (pathname.startsWith("/owner"))   return true; // let middleware handle it
+        if (pathname.startsWith("/checkout")) return true; // let middleware handle it
+        return true; // all other routes are public
       },
     },
   }
 );
 
 export const config = {
-  matcher: ["/owner/:path*", "/admin/:path*", "/checkout"],
+  // Only run middleware on these paths — NOT on API routes or static files
+  matcher: [
+    "/owner/:path*",
+    "/checkout",
+  ],
 };
