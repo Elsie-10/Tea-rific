@@ -3,7 +3,6 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// POST /api/orders — customer places order, appears on dashboard immediately
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -20,7 +19,7 @@ export async function POST(request) {
     if (!total || Number(total) <= 0)
       return NextResponse.json({ success: false, error: "Order total is invalid." }, { status: 400 });
 
-    // Create order — visible on owner dashboard immediately with Pending status
+    // 1. Create order
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -40,44 +39,54 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: orderErr.message }, { status: 500 });
     }
 
-    // Insert order items
+    // 2. Insert order items
+    // product_id must be a valid UUID or null — never a string like "cake-main"
+    const orderItems = items.map((i) => {
+      const rawId = i.productId || i.id || i._id || null;
+      const isUUID = rawId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawId);
+      return {
+        order_id:    order.id,
+        product_id:  isUUID ? rawId : null,   // only save if valid UUID
+        name:        String(i.name),
+        price:       Number(i.price),
+        quantity:    Number(i.quantity),
+        image:       i.image       || null,
+        custom_note: i.customNote  || null,
+      };
+    });
+
+    console.log("Inserting order items:", JSON.stringify(orderItems, null, 2));
+
     const { error: itemsErr } = await supabaseAdmin
       .from("order_items")
-      .insert(
-        items.map((i) => ({
-          order_id:   order.id,
-          product_id: i.productId || i._id || null,
-          name:       i.name,
-          price:      Number(i.price),
-          quantity:   Number(i.quantity),
-          image:      i.image || null,
-        }))
-      );
+      .insert(orderItems);
 
-    if (itemsErr) console.error("Order items insert error:", itemsErr);
+    if (itemsErr) {
+      console.error("Order items insert error:", itemsErr.message, itemsErr.details, itemsErr.hint);
+      // Return the error so we can debug it
+      return NextResponse.json({
+        success: false,
+        error: `Order created but items failed: ${itemsErr.message}`,
+        orderId: order.id,
+      }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });
+
   } catch (err) {
     console.error("POST /api/orders crashed:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
 
-// GET /api/orders — owner only
 export async function GET(request) {
   try {
-    // Fix: pass request to getServerSession for App Router compatibility
     const session = await getServerSession(authOptions);
 
-    if (!session) {
-      console.log("GET /api/orders — no session found");
+    if (!session)
       return NextResponse.json({ success: false, error: "Not signed in." }, { status: 401 });
-    }
-
-    if (session.user.role !== "owner") {
-      console.log("GET /api/orders — role is:", session.user.role);
+    if (session.user.role !== "owner")
       return NextResponse.json({ success: false, error: "Owner access only." }, { status: 403 });
-    }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
@@ -91,29 +100,22 @@ export async function GET(request) {
       .order("created_at", { ascending: false })
       .range(from, from + limit - 1);
 
-    if (status && status !== "All") {
+    if (status && status !== "All")
       query = query.eq("order_status", status);
-    }
 
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("GET /api/orders Supabase error:", error);
+      console.error("GET /api/orders error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    console.log(`GET /api/orders — returning ${data?.length || 0} orders`);
-
     return NextResponse.json({
       success: true,
-      data:    data || [],
-      pagination: {
-        total: count || 0,
-        page,
-        limit,
-        pages: Math.ceil((count || 0) / limit),
-      },
+      data: data || [],
+      pagination: { total: count || 0, page, limit, pages: Math.ceil((count || 0) / limit) },
     });
+
   } catch (err) {
     console.error("GET /api/orders crashed:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
