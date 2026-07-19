@@ -173,7 +173,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-[#F2E0D0] py-8 text-center text-sm text-gray-400 bg-white">
-        <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-Terrific Bakery</p>
+        <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Treats Bakery</p>
         <p>📞 <a href="tel:0720216244" className="hover:underline">0720 216 244</a></p>
         <p className="mt-2">© {new Date().getFullYear()} Tea-rific Treat Bakery. Made with ♥ in Nairobi.</p>
       </footer>

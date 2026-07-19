@@ -88,7 +88,7 @@ export default function AboutPage() {
           <p className="text-[#D4A843] text-sm font-semibold uppercase tracking-widest mb-4">Hi, we are so glad you are here 👋</p>
           <h1 className="font-serif text-5xl md:text-6xl font-bold mb-6 leading-tight">The Tea-rific Story</h1>
           <p className="text-[#F2E0D0] text-lg leading-relaxed">
-            Tea-rific started in a small Nairobi kitchen with one big dream — to turn ordinary days into something worth celebrating.
+            Tea-rific Treats started in a small Nairobi kitchen with one big dream — to turn ordinary days into something worth celebrating.
             What began as a deep love for mixing, frosting, and sharing has grown into a home bakery that families and friends across Nairobi
             trust for their biggest and most personal moments.
           </p>
