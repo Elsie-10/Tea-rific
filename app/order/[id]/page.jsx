@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import {
@@ -16,7 +16,6 @@ const STATUS_INFO = {
     icon:  Clock,
     color: "text-yellow-600",
     bg:    "bg-yellow-100",
-    ring:  "ring-yellow-200",
     label: "Order Received",
     desc:  "Your order has been received. The baker will confirm and contact you shortly.",
   },
@@ -24,7 +23,6 @@ const STATUS_INFO = {
     icon:  ChefHat,
     color: "text-blue-600",
     bg:    "bg-blue-100",
-    ring:  "ring-blue-200",
     label: "Being Prepared",
     desc:  "Your order is now in the kitchen being freshly baked for you.",
   },
@@ -32,7 +30,6 @@ const STATUS_INFO = {
     icon:  Package,
     color: "text-green-600",
     bg:    "bg-green-100",
-    ring:  "ring-green-200",
     label: "Ready",
     desc:  "Your order is ready! The baker will arrange delivery or pickup with you.",
   },
@@ -40,7 +37,6 @@ const STATUS_INFO = {
     icon:  CheckCircle,
     color: "text-[#4A7C59]",
     bg:    "bg-green-50",
-    ring:  "ring-green-200",
     label: "Completed",
     desc:  "Your order has been delivered. Thank you for choosing Tea-Terrific!",
   },
@@ -48,7 +44,6 @@ const STATUS_INFO = {
     icon:  XCircle,
     color: "text-red-600",
     bg:    "bg-red-50",
-    ring:  "ring-red-200",
     label: "Cancelled",
     desc:  "This order was cancelled. Please contact us if you have any questions.",
   },
@@ -65,12 +60,8 @@ function StatusStep({ label, icon: Icon, isActive, isDone, isLast }) {
     <div className="flex items-center flex-1">
       <div className="flex flex-col items-center">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
-          ${isDone || isActive
-            ? "bg-[#6B3F1F] text-white shadow-md"
-            : "bg-gray-100 text-gray-400"
-          }
-          ${isActive ? "ring-4 ring-[#6B3F1F]/20" : ""}
-        `}>
+          ${isDone || isActive ? "bg-[#6B3F1F] text-white shadow-md" : "bg-gray-100 text-gray-400"}
+          ${isActive ? "ring-4 ring-[#6B3F1F]/20" : ""}`}>
           <Icon className="w-5 h-5" />
         </div>
         <p className={`text-xs font-semibold mt-2 text-center max-w-[70px] leading-tight
@@ -80,16 +71,14 @@ function StatusStep({ label, icon: Icon, isActive, isDone, isLast }) {
       </div>
       {!isLast && (
         <div className={`flex-1 h-0.5 mx-2 mb-5 transition-all
-          ${isDone ? "bg-[#6B3F1F]" : "bg-gray-200"}`}
-        />
+          ${isDone ? "bg-[#6B3F1F]" : "bg-gray-200"}`} />
       )}
     </div>
   );
 }
 
 export default function OrderTrackingPage() {
-  const { id }    = useParams();
-  const router    = useRouter();
+  const { id } = useParams();
 
   const [order,   setOrder]   = useState(null);
   const [loading, setLoading] = useState(true);
@@ -101,21 +90,14 @@ export default function OrderTrackingPage() {
     setRefresh(true);
     try {
       const res = await fetch(`/api/orders/${id}`);
-
       if (!res.ok) {
-        if (res.status === 404) {
-          setError("Order not found. Please check your link or contact us on 0720 216 244.");
-        } else {
-          setError("Something went wrong loading your order. Please try again.");
-        }
+        setError(res.status === 404
+          ? "Order not found. Please check your link or contact us on 0720 216 244."
+          : "Something went wrong loading your order. Please try again.");
         return;
       }
-
       const data = await res.json();
-      if (!data.success) {
-        setError(data.error || "Could not load order.");
-        return;
-      }
+      if (!data.success) { setError(data.error || "Could not load order."); return; }
       setOrder(data.data);
       setError("");
     } catch {
@@ -128,7 +110,7 @@ export default function OrderTrackingPage() {
 
   useEffect(() => { fetchOrder(); }, [id]);
 
-  // Auto-refresh every 30 seconds if order is active
+  // Auto-refresh every 30 seconds while order is active
   useEffect(() => {
     if (!order) return;
     if (["Completed", "Cancelled"].includes(order.order_status)) return;
@@ -147,27 +129,36 @@ export default function OrderTrackingPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-10">
 
-        {/* Back link */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#6B3F1F]
-                     transition mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-
+        {/* ── Navigation bar ── */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="font-serif text-3xl font-bold text-[#2C2C2C]">Track Order</h1>
-          <button
-            onClick={fetchOrder}
-            disabled={refresh}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#6B3F1F]
-                       transition disabled:opacity-50"
+          <Link
+            href="/orders"
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-500
+                       hover:text-[#6B3F1F] transition"
           >
-            <RefreshCw className={`w-4 h-4 ${refresh ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
+            <ArrowLeft className="w-4 h-4" />
+            My Orders
+          </Link>
+          <div className="flex items-center gap-4 text-sm">
+            <Link href="/" className="text-gray-500 hover:text-[#6B3F1F] transition">
+              Menu
+            </Link>
+            <Link href="/cart" className="text-gray-500 hover:text-[#6B3F1F] transition">
+              Cart
+            </Link>
+            <button
+              onClick={fetchOrder}
+              disabled={refresh}
+              className="flex items-center gap-1 text-gray-500 hover:text-[#6B3F1F]
+                         transition disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refresh ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+          </div>
         </div>
+
+        <h1 className="font-serif text-3xl font-bold text-[#2C2C2C] mb-6">Track Order</h1>
 
         {/* Loading */}
         {loading && (
@@ -178,7 +169,7 @@ export default function OrderTrackingPage() {
           </div>
         )}
 
-        {/* Error state */}
+        {/* Error */}
         {!loading && error && (
           <div className="card p-10 text-center">
             <XCircle className="w-14 h-14 text-red-400 mx-auto mb-4" />
@@ -195,8 +186,9 @@ export default function OrderTrackingPage() {
                 📞 Call Us
               </a>
             </div>
-            <Link href="/orders" className="block text-sm text-[#4A7C59] mt-4 hover:underline">
-              View all your orders →
+            <Link href="/orders"
+              className="block text-sm text-[#4A7C59] mt-4 hover:underline">
+              ← Back to My Orders
             </Link>
           </div>
         )}
@@ -208,25 +200,21 @@ export default function OrderTrackingPage() {
             {/* Status banner */}
             <div className={`card p-6 ${statusInfo.bg} border-0`}>
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-full ${statusInfo.bg} ${statusInfo.ring}
-                                 ring-4 flex items-center justify-center flex-shrink-0`}>
+                <div className={`w-12 h-12 rounded-full ${statusInfo.bg} ring-4 ring-white
+                                 flex items-center justify-center flex-shrink-0`}>
                   <StatusIcon className={`w-6 h-6 ${statusInfo.color}`} />
                 </div>
                 <div>
-                  <p className={`font-bold text-lg ${statusInfo.color}`}>
-                    {statusInfo.label}
-                  </p>
+                  <p className={`font-bold text-lg ${statusInfo.color}`}>{statusInfo.label}</p>
                   <p className="text-gray-600 text-sm mt-0.5">{statusInfo.desc}</p>
                   {!["Completed","Cancelled"].includes(order.order_status) && (
-                    <p className="text-xs text-gray-400 mt-2">
-                      Auto-refreshes every 30 seconds
-                    </p>
+                    <p className="text-xs text-gray-400 mt-2">Auto-refreshes every 30 seconds</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Progress tracker — not shown if cancelled */}
+            {/* Progress stepper */}
             {!isCancelled && (
               <div className="card p-6">
                 <h2 className="font-serif text-lg font-bold text-[#2C2C2C] mb-6">
@@ -256,7 +244,6 @@ export default function OrderTrackingPage() {
                 Order Summary
               </h2>
 
-              {/* Meta */}
               <div className="grid grid-cols-2 gap-3 text-sm mb-5">
                 <div className="bg-[#FDF8F0] rounded-xl p-3">
                   <p className="text-xs text-gray-400 mb-0.5">Customer</p>
@@ -322,17 +309,17 @@ export default function OrderTrackingPage() {
                 <p className="text-sm text-gray-400 italic mb-4">No item details available.</p>
               )}
 
-              {/* Total + payment */}
+              {/* Total */}
               <div className="border-t border-[#F2E0D0] pt-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Payment Status</p>
+                  <p className="text-xs text-gray-400 mb-1">Payment</p>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold
                     ${PAYMENT_COLORS[order.payment_status] || ""}`}>
                     {order.payment_status}
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-400 mb-1">Order Total</p>
+                  <p className="text-xs text-gray-400 mb-1">Total</p>
                   <p className="text-2xl font-bold text-[#6B3F1F]">
                     Ksh {Number(order.total).toLocaleString()}
                   </p>
@@ -340,22 +327,23 @@ export default function OrderTrackingPage() {
               </div>
             </div>
 
-            {/* Help */}
-            <div className="card p-5 text-center">
-              <p className="text-gray-500 text-sm mb-3">
-                Questions about your order?
-              </p>
-              <a href="tel:0720216244"
-                className="inline-flex items-center gap-2 bg-[#6B3F1F] text-white
-                           px-6 py-2.5 rounded-lg font-semibold text-sm
-                           hover:bg-[#8B5A2B] transition">
-                📞 Call 0720 216 244
-              </a>
-              <div className="mt-3">
+            {/* Bottom nav */}
+            <div className="card p-5">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <Link href="/orders"
-                  className="text-sm text-[#4A7C59] hover:underline">
-                  ← View all your orders
+                  className="flex items-center gap-1.5 text-sm font-semibold
+                             text-[#6B3F1F] hover:underline">
+                  <ArrowLeft className="w-4 h-4" /> All My Orders
                 </Link>
+                <div className="flex gap-3">
+                  <Link href="/" className="btn-outline !py-2 !px-4 text-sm">
+                    Browse Menu
+                  </Link>
+                  <a href="tel:0720216244"
+                    className="btn-primary !py-2 !px-4 text-sm">
+                    📞 Call Us
+                  </a>
+                </div>
               </div>
             </div>
 
