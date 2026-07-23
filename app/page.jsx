@@ -136,34 +136,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
 
-  useEffect(() => {
-    let mounted = true;
-
-    const loadProducts = async () => {
-      try {
-        const response = await fetch("/api/products");
-        const data = await response.json();
-
-        if (!mounted) return;
-
-        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
-          setProducts(data.data);
-        } else {
-          setProducts(FALLBACK_PRODUCTS);
-        }
-      } catch {
-        if (mounted) setProducts(FALLBACK_PRODUCTS);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    loadProducts();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+ useEffect(() => {
+  setProducts(FALLBACK_PRODUCTS);
+  setLoading(false);
+}, []);
 
   const visible = activeTab === "All"
     ? products
