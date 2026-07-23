@@ -4,30 +4,35 @@ import { useState } from "react";
 import { Settings2, Plus } from "lucide-react";
 
 const CATEGORY_EMOJI = {
-  Cake: "🎂", Loaf: "🍞", Cupcake: "🧁",
+  Cake: "🎂", Loaf: "🍞", Yoghuts: "🥛", Cupcake: "🧁",
   Cookie: "🍪", Special: "✨",
 };
 
 // Categories that need a configurator modal
 const CONFIGURABLE = ["Cake", "Loaf", "Special", "Cookie", "Cupcake"];
 
+
 const NAME_TO_IMAGE = {
-  // Cakes
-  "cake – 1 kg":               "/images/cake.jpeg",
-  "1½ kgcake ":              "/images/celebrationcake1.jpeg",
-  " 2kg cake ":               "/images/cake4.jpeg",
-  // Loaves
-  "single loaf":               "/images/loaf1a.jpeg",
-  "double loaf":               "/images/loafa.jpeg",
-  // Cupcakes
-  "cupcakes – dozen (12 pcs)": "/images/cupcake1a.jpeg",
-  // Cookies
-  "cookies - chocolate chip":      "/images/cookies.jpeg",
+  "1 kg cake": "/images/cake.jpeg",
+  "1.5 kg cake": "/images/celebrationcake1.jpeg",
+  "2 kg cake": "/images/celebrationcake2.jpeg",
+
+  "single loaf": "/images/loaf1a.jpeg",
+  "double loaf": "/images/loaf1b.jpeg",
+
+  "sweetened yoghut": "/images/yoghut.jpeg",
+  "unsweetened yoghut": "/images/yoghut.jpeg",
+
+  "cupcakes – dozen": "/images/cupcake1a.jpeg",
+
+  "cookies – full batch": "/images/cookies.jpeg",
   "cookies - ginger":      "/images/cookies.jpeg",
-  // Specials
-  "fruit cake":                "/images/fruitcake.jpeg",
-  "large celebration cake":    "/images/celebrationcake3c.jpeg",
+
+  "large celebration cake": "/images/celebrationcake3c.jpeg",
+
+  "fruit cake": "/images/fruitcake.jpeg",
 };
+
 
 const CATEGORY_FALLBACK = {
   Cake:    "/images/cake.jpeg",
