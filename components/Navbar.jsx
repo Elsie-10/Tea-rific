@@ -38,7 +38,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold font-serif text-[#6B3F1F]">Tea-Terrific</span>
+          <span className="text-2xl font-bold font-serif text-[#6B3F1F]">Tea-rific Treats</span>
           <span className="text-xs text-[#4A7C59] font-medium hidden sm:block tracking-widest uppercase">
             Bakery
           </span>

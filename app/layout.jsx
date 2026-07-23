@@ -18,7 +18,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata = {
-  title: "Tea-Terrific Bakery",
+  title: "Tea-rific Treat Bakery",
   description: "Order fresh artisan baked goods online — delivered to your door.",
   icons: { icon: "/favicon.ico" },
 };

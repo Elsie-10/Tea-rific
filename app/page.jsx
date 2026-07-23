@@ -4,62 +4,182 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-import ProductModal from "@/components/ProductModal";
 
-const CATEGORIES = ["All", "Cake", "Loaf", "Cupcake", "Cookie", "Special"];
+const CATEGORIES = ["All", "Cakes", "Loaves", "Yoghuts", "Cupcakes", "Cookies", "Specials"];
 
-// Static catalogue — always shown regardless of DB state
-// Matches the exact real menu from the owner
-const CATALOGUE = [
+const FALLBACK_PRODUCTS = [
   // ── Cakes ──────────────────────────────────────────────────
   {
-    id: "cake-main", name: "Cake", category: "Cake", featured: true, price: 4000,
-    description: "Swiss Meringue Buttercream on every cake. Choose vanilla, chocolate, or carrot cinnamon. 1 Kg / 1.5 Kg / 2 Kg.",
+    _id: "cake-1kg",
+    name: "1 Kg Cake",
+    price: 4000,
+    description: "Swiss Meringue Buttercream frosting on every cake. Choose vanilla, chocolate, or carrot cinnamon.",
+    image: "/images/cake.jpeg",
+    category: "Cakes",
+    featured: true,
+    options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
   },
+  {
+    _id: "cake-1-5kg",
+    name: "1.5 Kg Cake",
+    price: 6000,
+    description: "Swiss Meringue Buttercream frosting. Perfect for family celebrations.",
+    image: "/images/celebrationcake1.jpeg",
+    category: "Cakes",
+    featured: true,
+    options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
+  },
+  {
+    _id: "cake-2kg",
+    name: "2 Kg Cake",
+    price: 8000,
+    description: "Swiss Meringue Buttercream frosting. Generous size for party events.",
+    image: "/images/celebrationcake2.jpeg",
+    category: "Cakes",
+    featured: true,
+    options: ["Vanilla", "Chocolate", "Carrot Cinnamon"],
+  },
+
   // ── Loaves ─────────────────────────────────────────────────
   {
-    id: "loaf-main", name: "Loaf", category: "Loaf", featured: true, price: 1500,
-    description: "Freshly baked loaves. Five flavour options. Single or double.",
+    _id: "loaf-single",
+    name: "Single Loaf",
+    price: 1500,
+    description: "Freshly baked single loaf. Five flavour options.",
+    image: "/images/loaf1a.jpeg",
+    category: "Loaves",
+    featured: true,
+    options: ["Vanilla", "Chocolate", "Chocolate Mint", "Carrot Cinnamon", "Banana"],
   },
+  {
+    _id: "loaf-double",
+    name: "Double Loaf",
+    price: 3000,
+    description: "Freshly baked double loaf. Five flavour options.",
+    image: "/images/loaf1b.jpeg",
+    category: "Loaves",
+    featured: true,
+    options: ["Vanilla", "Chocolate", "Chocolate Mint", "Carrot Cinnamon", "Banana"],
+  },
+
+  // ── Yoghuts ────────────────────────────────────────────────
+  {
+    _id: "yoghut-sweetened",
+    name: "Sweetened Yoghut",
+    price: 500,
+    description: "Fresh, smooth and creamy sweetened yoghurt. 500 per litre.",
+    image: "/image/yoghut.jpeg",
+    category: "Yoghuts",
+    featured: true,
+    options: ["1 Litre"],
+  },
+  {
+    _id: "yoghut-unsweetened",
+    name: "Unsweetened Yoghut",
+    price: 500,
+    description: "Pure, natural and healthy unsweetened yoghurt. 500 per litre.",
+    image: "/image/yoghut.jpeg",
+    category: "Yoghuts",
+    featured: true,
+    options: ["1 Litre"],
+  },
+
   // ── Cupcakes ───────────────────────────────────────────────
   {
-    id: "cupcake-main", name: "Cupcakes – Dozen", category: "Cupcake", featured: true, price: 1800,
+    _id: "cupcake-dozen",
+    name: "Cupcakes – Dozen",
+    price: 1800,
     description: "Butter cream frosted cupcakes, sold by the dozen (12 pcs).",
+    image: "/images/cupcake1a.jpeg",
+    category: "Cupcakes",
+    featured: true,
+    options: ["Classic", "Berry"],
   },
+
   // ── Cookies ────────────────────────────────────────────────
   {
-    id: "cookie-main", name: "Cookies – Full Batch", category: "Cookie", featured: false, price: 1800,
+    _id: "cookie-batch",
+    name: "Cookies – Full Batch",
+    price: 1800,
     description: "Chocolate chip or ginger. Crispy outside, chewy inside. Full batch.",
+    image: "/images/cookies.jpeg",
+    category: "Cookies",
+    featured: false,
+    options: ["Chocolate Chip", "Ginger"],
   },
+
   // ── Specials ───────────────────────────────────────────────
   {
-    id: "celebration-main", name: "Large Celebration Cake", category: "Special", featured: true, price: 9000,
+    _id: "celebration-large",
+    name: "Large Celebration Cake",
+    price: 9000,
     description: "4 Kg cake. Serves 70+ people. Corporate and family events. Tell us exactly what you need.",
+    image: "/images/celebrationcake3c.jpeg",
+    category: "Specials",
+    featured: true,
+    options: ["Custom Theme"],
   },
   {
-    id: "fruit-cake", name: "Fruit Cake", category: "Special", featured: true, price: 5000,
+    _id: "fruit-cake",
+    name: "Fruit Cake",
+    price: 5000,
     description: "Rich, moist fruit cake packed with premium dried fruits. Great for celebrations and gifting.",
+    image: "/images/fruitcake.jpeg",
+    category: "Specials",
+    featured: true,
+    options: ["Rich Fruit"],
   },
 ];
 
 export default function HomePage() {
-  const [activeTab,       setActiveTab]       = useState("All");
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [dbProducts,      setDbProducts]      = useState([]);
+  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("All");
 
-  // Try to load products from DB — if it works, use them; otherwise use CATALOGUE
   useEffect(() => {
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((d) => { if (d?.success && d.data?.length) setDbProducts(d.data); })
-      .catch(() => {});
-  }, []);
+    let mounted = true;
 
-  const products = dbProducts.length > 0 ? dbProducts : CATALOGUE;
+    const loadProducts = async () => {
+      try {
+        const response = await fetch("/api/products");
+        const data = await response.json();
+
+        if (!mounted) return;
+
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          setProducts(data.data);
+        } else {
+          setProducts(FALLBACK_PRODUCTS);
+        }
+      } catch {
+        if (mounted) setProducts(FALLBACK_PRODUCTS);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const visible = activeTab === "All"
     ? products
-    : products.filter((p) => p.category === activeTab);
+    : products.filter((p) => {
+        const cat = (p.category || "").toLowerCase();
+        const tab = activeTab.toLowerCase();
+        return (
+          cat === tab ||
+          cat === tab.replace(/s$/, "") ||
+          tab === cat.replace(/s$/, "") ||
+          (tab.includes("yoghut") && cat.includes("yoghut")) ||
+          (tab.includes("cake") && cat.includes("cake")) ||
+          (tab.includes("loaf") && cat.includes("loaf")) ||
+          (tab.includes("loave") && cat.includes("loaf"))
+        );
+      });
 
   return (
     <div className="min-h-screen bg-[#FDF8F0]">
@@ -67,44 +187,38 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="bg-[#6B3F1F] text-white py-16 px-4">
-        <div className="max-w-6xl mx-auto grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-center">
+        <div className="max-w-6xl mx-auto grid gap-8 lg:grid-cols-[1.05fr_0.95fr] items-center">
           <div className="text-center lg:text-left">
             <p className="text-[#D4A843] text-sm font-semibold uppercase tracking-widest mb-3">
               Freshly Baked Daily
             </p>
             <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4 leading-tight">
-              Tea-rific Treats
+              Tea-rific Treat Bakery
             </h1>
-            <p className="text-[#F2E0D0] text-lg max-w-xl mx-auto lg:mx-0 mb-4">
-              Artisan cakes, loaves, cupcakes & cookies — every item made fresh to your
-              exact order.
+            <p className="text-[#F2E0D0] text-lg max-w-xl mx-auto lg:mx-0 mb-2">
+              Artisan cakes, loaves, yoghuts, cupcakes & cookies — order online and pay securely with M-Pesa.
             </p>
-            <div className="space-y-1 text-sm text-[#F2E0D0]">
-              <p>📞 0720 216 244</p>
-              <p>⏰ Orders must be placed <strong className="text-[#D4A843]">24 hours in advance</strong></p>
-              <p>💳 <strong className="text-[#D4A843]">50% deposit</strong> required to confirm order</p>
-            </div>
+            <p className="text-[#D4A843] text-sm mt-3">
+              📞 0720 216 244 &nbsp;·&nbsp; Orders 24 hrs in advance &nbsp;·&nbsp; 50% deposit required
+            </p>
             <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-3">
-              <a href="#menu"
-                className="rounded-full bg-white px-6 py-2.5 text-sm font-bold text-[#6B3F1F] hover:bg-[#F2E0D0] transition">
+              <a href="#menu" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#6B3F1F] transition hover:bg-[#F2E0D0]">
                 View Menu
               </a>
-              <a href="tel:0720216244"
-                className="rounded-full border border-[#D4A843] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#7E4A23] transition">
-                📞 Call Us
+              <a href="/checkout" className="rounded-full border border-[#D4A843] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7E4A23]">
+                Order Now
               </a>
             </div>
           </div>
 
-          {/* Menu image */}
           <div id="menu" className="overflow-hidden rounded-[2rem] border border-[#D4A843]/40 shadow-xl">
             <Image
               src="/images/Backery0.jpeg"
-              alt="Tea-rific Treats menu"
-              width={800}
-              height={600}
+              alt="Tea-rific Treat Bakery menu"
+              width={1200}
+              height={800}
               priority
-              className="w-full object-cover"
+              className="h-full w-full object-cover"
             />
           </div>
         </div>
@@ -129,62 +243,53 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* How it works */}
-      <div className="bg-[#FDF8F0] border-b border-[#F2E0D0]">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap gap-6 justify-center text-sm text-gray-500">
-          <span>🎨 <strong className="text-[#2C2C2C]">Customise</strong> — pick your flavour, size & filling</span>
-          <span>🛒 <strong className="text-[#2C2C2C]">Add to cart</strong> — review your full order</span>
-          <span>📝 <strong className="text-[#2C2C2C]">Place order</strong> — we confirm & arrange payment</span>
-        </div>
-      </div>
-
-      {/* Products grid */}
+      {/* Products */}
       <main className="max-w-6xl mx-auto px-4 py-12">
-        {visible.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="card animate-pulse">
+                <div className="w-full h-48 bg-gray-100" />
+                <div className="p-4 space-y-3">
+                  <div className="h-3 bg-gray-100 rounded w-1/3" />
+                  <div className="h-5 bg-gray-100 rounded w-2/3" />
+                  <div className="h-3 bg-gray-100 rounded w-full" />
+                  <div className="h-3 bg-gray-100 rounded w-4/5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : visible.length === 0 ? (
           <div className="text-center py-24 text-gray-400">
             <p className="text-5xl mb-4">🧁</p>
-            <p className="text-lg font-semibold">No items in this category.</p>
+            <p className="text-lg font-semibold">No items in this category yet.</p>
+            <p className="text-sm mt-2">Check back soon!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {visible.map((product) => (
-              <ProductCard
-                key={product.id || product._id}
-                product={product}
-                onConfigure={setSelectedProduct}
-              />
+              <ProductCard key={product._id} product={product} />
             ))}
           </div>
         )}
 
-        {/* Terms */}
-        <div className="mt-16 bg-white border border-[#D4A843] rounded-2xl p-6 text-center">
-          <h3 className="font-serif text-lg font-bold text-[#6B3F1F] mb-2">
-            Terms & Conditions
-          </h3>
+        {/* Terms notice */}
+        <div className="mt-16 bg-[#FDF8F0] border border-[#D4A843] rounded-2xl p-6 text-center">
+          <h3 className="font-serif text-lg font-bold text-[#6B3F1F] mb-2">Terms & Conditions</h3>
           <p className="text-gray-600 text-sm">
-            All orders must be placed <strong>24 hours in advance</strong> with a{" "}
-            <strong>50% deposit</strong>. Extra charges apply for fillings, additional
-            items, and delivery. The owner will contact you to confirm details and
-            arrange payment.
+            For the best experience, please order <strong>24 hours in advance</strong> with a{" "}
+            <strong>50% deposit</strong>. Extra charges apply for additional items and delivery.
           </p>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-[#F2E0D0] py-8 text-center text-sm text-gray-400 bg-white">
-        <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Treats Bakery</p>
+        <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Treat Bakery</p>
         <p>📞 <a href="tel:0720216244" className="hover:underline">0720 216 244</a></p>
+        <p className="mt-1">✉️ <a href="mailto:tearifictreats@gmail.com" className="hover:underline">tearifictreats@gmail.com</a></p>
         <p className="mt-2">© {new Date().getFullYear()} Tea-rific Treat Bakery. Made with ♥ in Nairobi.</p>
       </footer>
-
-      {/* Product configurator modal */}
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
     </div>
   );
 }
