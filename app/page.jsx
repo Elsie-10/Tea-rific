@@ -5,8 +5,15 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 
-const CATEGORIES = ["All", "Cakes", "Loaves", "Yoghuts", "Cupcakes", "Cookies", "Specials"];
-
+const CATEGORIES = [
+  { label: "All", value: "All" },
+  { label: "Cakes", value: "Cake" },
+  { label: "Loaves", value: "Loaf" },
+  { label: "Yoghuts", value: "Yoghut" },
+  { label: "Cupcakes", value: "Cupcake" },
+  { label: "Cookies", value: "Cookie" },
+  { label: "Specials", value: "Special" },
+];
 const FALLBACK_PRODUCTS = [
   // ── Cakes ──────────────────────────────────────────────────
   {
@@ -141,21 +148,10 @@ export default function HomePage() {
   setLoading(false);
 }, []);
 
-  const visible = activeTab === "All"
+  const visible =
+  activeTab === "All"
     ? products
-    : products.filter((p) => {
-        const cat = (p.category || "").toLowerCase();
-        const tab = activeTab.toLowerCase();
-        return (
-          cat === tab ||
-          cat === tab.replace(/s$/, "") ||
-          tab === cat.replace(/s$/, "") ||
-          (tab.includes("yoghut") && cat.includes("yoghut")) ||
-          (tab.includes("cake") && cat.includes("cake")) ||
-          (tab.includes("loaf") && cat.includes("loaf")) ||
-          (tab.includes("loave") && cat.includes("loaf"))
-        );
-      });
+    : products.filter((p) => p.category === activeTab);
 
   return (
     <div className="min-h-screen bg-[#FDF8F0]">
@@ -204,18 +200,18 @@ export default function HomePage() {
       <div className="bg-white border-b border-[#F2E0D0] sticky top-16 z-40">
         <div className="max-w-6xl mx-auto px-4 flex gap-2 overflow-x-auto py-3 scrollbar-hide">
           {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveTab(cat)}
-              className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                activeTab === cat
-                  ? "bg-[#6B3F1F] text-white"
-                  : "bg-[#FDF8F0] text-gray-600 hover:bg-[#F2E0D0]"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+  <button
+    key={cat.value}
+    onClick={() => setActiveTab(cat.value)}
+    className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+      activeTab === cat.value
+        ? "bg-[#6B3F1F] text-white"
+        : "bg-[#FDF8F0] text-gray-600 hover:bg-[#F2E0D0]"
+    }`}
+  >
+    {cat.label}
+  </button>
+))}
         </div>
       </div>
 

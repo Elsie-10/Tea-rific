@@ -4,13 +4,21 @@ import { useState } from "react";
 import { Settings2, Plus } from "lucide-react";
 
 const CATEGORY_EMOJI = {
-  Cake: "🎂", Loaf: "🍞", Yoghuts: "🥛", Cupcake: "🧁",
-  Cookie: "🍪", Special: "✨",
+  Cake: "🎂",
+  Loaf: "🍞",
+  Yoghut: "🥛",
+  Cupcake: "🧁",
+  Cookie: "🍪",
+  Special: "✨",
 };
 
-// Categories that need a configurator modal
-const CONFIGURABLE = ["Cake", "Loaf", "Special", "Cookie", "Cupcake"];
-
+const CONFIGURABLE = [
+  "Cake",
+  "Loaf",
+  "Cupcake",
+  "Cookie",
+  "Special",
+];
 
 const NAME_TO_IMAGE = {
   "1 kg cake": "/images/cake.jpeg",
@@ -35,13 +43,15 @@ const NAME_TO_IMAGE = {
 
 
 const CATEGORY_FALLBACK = {
-  Cake:    "/images/cake.jpeg",
-  Loaf:    "/images/loaf1a.jpeg",
-  Yoghuts: "/images/yoghut.jpeg",
+  Cake: "/images/cake.jpeg",
+  Loaf: "/images/loaf1a.jpeg",
+  Yoghut: "/images/Yoghut.jpeg",
   Cupcake: "/images/cupcake1a.jpeg",
-  Cookie:  "/images/cookies.jpeg",
+  Cookie: "/images/cookies.jpeg",
   Special: "/images/celebrationcake3c.jpeg",
 };
+
+
 
 function pickImage(product) {
   const key = (product.name || "").toLowerCase().trim();
@@ -53,11 +63,11 @@ function pickImage(product) {
 
 // Short description shown on card per category
 const CARD_BLURB = {
-  Cake:    "Choose flavour, size & optional fruit filling. SMBC frosting on every cake.",
-  Loaf:    "Choose from 5 flavours in single or double size.",
-  Yoghuts: "Fresh sweetened or unsweetened yoghurt. Ksh 500 per litre.",
+  Cake: "Choose flavour, size & optional fruit filling. SMBC frosting on every cake.",
+  Loaf: "Choose from 5 flavours in single or double size.",
+  Yoghut: "Fresh sweetened or unsweetened yoghurt. Ksh 500 per litre.",
   Cupcake: "Butter cream frosted cupcakes — order by the dozen.",
-  Cookie:  "Chocolate chip or ginger — full batch, baked fresh.",
+  Cookie: "Chocolate chip or ginger — full batch, baked fresh.",
   Special: "4 Kg · Serves 70+ · Tell us exactly what you need.",
 };
 
