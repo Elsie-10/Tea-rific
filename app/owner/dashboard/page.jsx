@@ -291,7 +291,7 @@ export default function OwnerDashboard() {
       {/* Header */}
       <header className="bg-[#6B3F1F] text-white px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-xl font-bold">Tea-Terrific</h1>
+          <h1 className="font-serif text-xl font-bold">Tea-rific Treat</h1>
           <p className="text-[#F2E0D0] text-xs">Owner Dashboard</p>
         </div>
         <div className="flex items-center gap-4">
