@@ -10,7 +10,7 @@ import { Plus, ShoppingCart } from "lucide-react";
 const CATEGORY_EMOJI = {
   Cakes:    "🎂",
   Loaves:   "🍞",
-  Yoghuts:  "🥛",
+  Yoghurts:  "🥛",
   Cupcakes: "🧁",
   Cookies:  "🍪",
   Specials: "✨",
@@ -20,7 +20,7 @@ const CATEGORY_EMOJI = {
 const CARD_BLURB = {
   Cakes:    "Choose flavour, size & optional filling. SMBC frosting on every cake.",
   Loaves:   "Choose from 5 flavours in single or double size.",
-  Yoghuts:  "Fresh and creamy. Sweetened or unsweetened. Ksh 500 per litre.",
+  Yoghurts:  "Fresh and creamy. Sweetened or unsweetened. Ksh 500 per litre.",
   Cupcakes: "Butter cream frosted cupcakes — order by the dozen.",
   Cookies:  "Chocolate chip or ginger — full batch, baked fresh.",
 };
@@ -29,7 +29,7 @@ const CARD_BLURB = {
 const CATEGORY_FALLBACK = {
   Cakes:    "/images/cake.jpeg",
   Loaves:   "/images/loaf1a.jpeg",
-  Yoghuts:  "/images/yoghut.jpeg",
+  Yoghurts:  "/images/yoghut.jpeg",
   Cupcakes: "/images/cupcake1a.jpeg",
   Cookies:  "/images/cookies.jpeg",
   Specials: "/images/celebrationcake3c.jpeg",
@@ -48,7 +48,7 @@ export default function ProductCard({ product, onConfigure }) {
     : product.image;
 
   // Yoghuts are simple add-to-cart, everything else opens configurator
-  const isYoghut      = product.category === "Yoghuts";
+  const isYoghut      = product.category === "Yoghurts";
   const isConfigurable = !isYoghut && !!onConfigure;
 
   const handleAdd = (e) => {
