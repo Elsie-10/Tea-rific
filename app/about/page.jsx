@@ -253,7 +253,7 @@ export default function AboutPage() {
       <footer className="border-t border-[#F2E0D0] py-8 text-center text-sm text-gray-400 bg-white">
         <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Bakery</p>
         <p>📞 <a href="tel:0720216244" className="hover:underline">0720 216 244</a></p>
-        <p className="mt-1">✉️ <a href="mailto:tearificbakerytreats@gmail.com" className="hover:underline">tearificbakerytreats@gmail.com</a></p>
+        <p className="mt-1">✉️ <a href="mailto:tearifictreatsbakery@gmail.com" className="hover:underline">tearificbakerytreats@gmail.com</a></p>
               <p className="mt-2">© {new Date().getFullYear()} Tea-rific Bakery. Made with ♥ in Nairobi.</p>
       </footer>
     </div>
