@@ -7,12 +7,12 @@ import ProductCard from "@/components/ProductCard";
 
 const CATEGORIES = [
   { label: "All", value: "All" },
-  { label: "Cakes", value: "Cake" },
-  { label: "Loaves", value: "Loaf" },
-  { label: "Yoghuts", value: "Yoghut" },
-  { label: "Cupcakes", value: "Cupcake" },
-  { label: "Cookies", value: "Cookie" },
-  { label: "Specials", value: "Special" },
+  { label: "Cakes", value: "Cakes" },
+  { label: "Loaves", value: "Loaves" },
+  { label: "Yoghuts", value: "Yoghuts" },
+  { label: "Cupcakes", value: "Cupcakes" },
+  { label: "Cookies", value: "Cookies" },
+  { label: "Specials", value: "Specials" },
 ];
 const FALLBACK_PRODUCTS = [
   // ── Cakes ──────────────────────────────────────────────────
