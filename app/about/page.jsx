@@ -89,7 +89,7 @@ export default function AboutPage() {
           <h1 className="font-serif text-5xl md:text-6xl font-bold mb-6 leading-tight">The Tea-rific Story</h1>
           <p className="text-[#F2E0D0] text-lg leading-relaxed">
             Tea-rific Treats started in our home kitchen with one big dream — to turn ordinary days into something worth celebrating.
-            What began as a deep love for mixing, frosting, and sharing has grown into a home bakery that families and friends across Nairobi and its environs
+            What began as a deep love for mixing, frosting, and sharing has grown into a home bakery that families and friends across Nairobi,Thika and its environs
             trust for their biggest and most personal moments.
           </p>
           <p className="text-[#F2E0D0] text-lg leading-relaxed mt-4">
@@ -253,9 +253,8 @@ export default function AboutPage() {
       <footer className="border-t border-[#F2E0D0] py-8 text-center text-sm text-gray-400 bg-white">
         <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Bakery</p>
         <p>📞 <a href="tel:0720216244" className="hover:underline">0720 216 244</a></p>
-        <p className="mt-1">✉️ <a href="mailto:tearifictreats@gmail.com" className="hover:underline">tearifictreats@gmail.com</a></p>
-        <p className="mt-2"> tearifictreats@gmail.com </p>
-        <p className="mt-2">© {new Date().getFullYear()} Tea-rific Bakery. Made with ♥ in Nairobi.</p>
+        <p className="mt-1">✉️ <a href="mailto:tearificbakerytreats@gmail.com" className="hover:underline">tearificbakerytreats@gmail.com</a></p>
+              <p className="mt-2">© {new Date().getFullYear()} Tea-rific Bakery. Made with ♥ in Nairobi.</p>
       </footer>
     </div>
   );
