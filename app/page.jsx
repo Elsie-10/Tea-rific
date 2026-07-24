@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
+import ProductModal from "@/components/ProductModal";
 
 const CATEGORIES = [
   { label: "All", value: "All" },
   { label: "Cakes", value: "Cakes" },
   { label: "Loaves", value: "Loaves" },
-  { label: "Yoghuts", value: "Yoghuts" },
+  { label: "Yoghurts", value: "Yoghuts" },
   { label: "Cupcakes", value: "Cupcakes" },
   { label: "Cookies", value: "Cookies" },
   { label: "Specials", value: "Specials" },
@@ -72,7 +73,7 @@ const FALLBACK_PRODUCTS = [
   // ── Yoghuts ────────────────────────────────────────────────
   {
     _id: "yoghut-sweetened",
-    name: "Sweetened Yoghut",
+    name: "Sweetened Yoghurt",
     price: 500,
     description: "Fresh, smooth and creamy sweetened yoghurt. 500 per litre.",
     image: "/images/yoghut.jpeg",
@@ -82,7 +83,7 @@ const FALLBACK_PRODUCTS = [
   },
   {
     _id: "yoghut-unsweetened",
-    name: "Unsweetened Yoghut",
+    name: "Unsweetened Yoghurt",
     price: 500,
     description: "Pure, natural and healthy unsweetened yoghurt. 500 per litre.",
     image: "/images/yoghut.jpeg",
@@ -120,7 +121,7 @@ const FALLBACK_PRODUCTS = [
     _id: "celebration-large",
     name: "Large Celebration Cake",
     price: 9000,
-    description: "4 Kg cake. Serves 70+ people. Corporate and family events. Tell us exactly what you need.",
+    description: "2 Kg cake. Rich cake filled with dried fruits and warm spices",
     image: "/images/celebrationcake3c.jpeg",
     category: "Specials",
     featured: true,
@@ -142,16 +143,17 @@ export default function HomePage() {
   const [products, setProducts] = useState(FALLBACK_PRODUCTS);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
+  const [configuringProduct, setConfiguringProduct] = useState(null);
 
- useEffect(() => {
-  setProducts(FALLBACK_PRODUCTS);
-  setLoading(false);
-}, []);
+  useEffect(() => {
+    setProducts(FALLBACK_PRODUCTS);
+    setLoading(false);
+  }, []);
 
   const visible =
-  activeTab === "All"
-    ? products
-    : products.filter((p) => p.category === activeTab);
+    activeTab === "All"
+      ? products
+      : products.filter((p) => p.category === activeTab);
 
   return (
     <div className="min-h-screen bg-[#FDF8F0]">
@@ -165,7 +167,7 @@ export default function HomePage() {
               Freshly Baked Daily
             </p>
             <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4 leading-tight">
-              Tea-rific Treat Bakery
+              Tea-rific Treats Bakery
             </h1>
             <p className="text-[#F2E0D0] text-lg max-w-xl mx-auto lg:mx-0 mb-2">
               Artisan cakes, loaves, yoghuts, cupcakes & cookies — order online and pay securely with M-Pesa.
@@ -200,18 +202,18 @@ export default function HomePage() {
       <div className="bg-white border-b border-[#F2E0D0] sticky top-16 z-40">
         <div className="max-w-6xl mx-auto px-4 flex gap-2 overflow-x-auto py-3 scrollbar-hide">
           {CATEGORIES.map((cat) => (
-  <button
-    key={cat.value}
-    onClick={() => setActiveTab(cat.value)}
-    className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-      activeTab === cat.value
-        ? "bg-[#6B3F1F] text-white"
-        : "bg-[#FDF8F0] text-gray-600 hover:bg-[#F2E0D0]"
-    }`}
-  >
-    {cat.label}
-  </button>
-))}
+            <button
+              key={cat.value}
+              onClick={() => setActiveTab(cat.value)}
+              className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                activeTab === cat.value
+                  ? "bg-[#6B3F1F] text-white"
+                  : "bg-[#FDF8F0] text-gray-600 hover:bg-[#F2E0D0]"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -240,9 +242,21 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {visible.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                onConfigure={setConfiguringProduct}
+              />
             ))}
           </div>
+        )}
+
+        {/* Product configuration modal */}
+        {configuringProduct && (
+          <ProductModal
+            product={configuringProduct}
+            onClose={() => setConfiguringProduct(null)}
+          />
         )}
 
         {/* Terms notice */}
@@ -257,10 +271,10 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-[#F2E0D0] py-8 text-center text-sm text-gray-400 bg-white">
-        <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Treat Bakery</p>
+        <p className="font-serif text-[#6B3F1F] font-bold text-lg mb-1">Tea-rific Treats Bakery</p>
         <p>📞 <a href="tel:0720216244" className="hover:underline">0720 216 244</a></p>
-        <p className="mt-1">✉️ <a href="mailto:tearifictreats@gmail.com" className="hover:underline">tearifictreats@gmail.com</a></p>
-        <p className="mt-2">© {new Date().getFullYear()} Tea-rific Treat Bakery. Made with ♥ in Nairobi.</p>
+        <p className="mt-1">✉️ <a href="mailto:tearifictreats@gmail.com" className="hover:underline">tearifictreatsbakery@gmail.com</a></p>
+        <p className="mt-2">© {new Date().getFullYear()} Tea-rific Treats Bakery. Made with ♥ in Nairobi.</p>
       </footer>
     </div>
   );
