@@ -634,7 +634,7 @@ export default function ProductModal({ product, onClose }) {
   const MODALS = {
   Cakes: <CakeModal onClose={onClose} onAdd={handleAdd} />,
   Loaves: <LoafModal onClose={onClose} onAdd={handleAdd} />,
-  Special:
+  Specials:
   product.name.toLowerCase().includes("fruit")
     ? <FruitCakeModal onClose={onClose} onAdd={handleAdd} />
     : <CelebrationModal onClose={onClose} onAdd={handleAdd} />,
@@ -645,7 +645,7 @@ export default function ProductModal({ product, onClose }) {
 const TITLES = {
   Cakes: "Customise Your Cake",
   Loaves: "Choose Your Loaf",
-  Special:
+  Specials:
   product.name.toLowerCase().includes("fruit")
     ? "Fruit Cake"
     : "Large Celebration Cake",
@@ -656,7 +656,7 @@ const TITLES = {
 const IMAGES = {
   Cakes: "/images/cake.jpeg",
   Loaves: "/images/loaf1a.jpeg",
-  Special:
+  Specials:
   product.name.toLowerCase().includes("fruit")
     ? "/images/fruitcake.jpeg"
     : "/images/celebrationcake1.jpeg",
