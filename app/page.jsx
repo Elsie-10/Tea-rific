@@ -10,7 +10,7 @@ const CATEGORIES = [
   { label: "All", value: "All" },
   { label: "Cakes", value: "Cakes" },
   { label: "Loaves", value: "Loaves" },
-  { label: "Yoghurts", value: "Yoghuts" },
+  { label: "Yoghurts", value: "Yoghurts" },
   { label: "Cupcakes", value: "Cupcakes" },
   { label: "Cookies", value: "Cookies" },
   { label: "Specials", value: "Specials" },
@@ -73,7 +73,7 @@ const FALLBACK_PRODUCTS = [
   // ── Yoghuts ────────────────────────────────────────────────
   {
     _id: "yoghut-sweetened",
-    name: "Sweetened Yoghurt",
+    name: "Pro-biotic Sweetened Yoghurt",
     price: 500,
     description: "Fresh, smooth and creamy sweetened yoghurt. 500 per litre.",
     image: "/images/yoghut.jpeg",
@@ -83,7 +83,7 @@ const FALLBACK_PRODUCTS = [
   },
   {
     _id: "yoghut-unsweetened",
-    name: "Unsweetened Yoghurt",
+    name: "Pro-biotic Unsweetened Yoghurt",
     price: 500,
     description: "Pure, natural and healthy unsweetened yoghurt. 500 per litre.",
     image: "/images/yoghut.jpeg",
