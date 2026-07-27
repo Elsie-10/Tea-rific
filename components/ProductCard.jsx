@@ -10,7 +10,7 @@ import { Plus, ShoppingCart } from "lucide-react";
 const CATEGORY_EMOJI = {
   Cakes:    "🎂",
   Loaves:   "🍞",
-  Yoghuts:  "🥛",
+  Yoghurts:  "🥛",
   Cupcakes: "🧁",
   Cookies:  "🍪",
   Specials: "✨",
@@ -20,17 +20,16 @@ const CATEGORY_EMOJI = {
 const CARD_BLURB = {
   Cakes:    "Choose flavour, size & optional filling. SMBC frosting on every cake.",
   Loaves:   "Choose from 5 flavours in single or double size.",
-  Yoghuts:  "Fresh and creamy. Sweetened or unsweetened. Ksh 500 per litre.",
+  Yoghurts:  "Fresh and creamy. Sweetened or unsweetened. Ksh 500 per litre.",
   Cupcakes: "Butter cream frosted cupcakes — order by the dozen.",
   Cookies:  "Chocolate chip or ginger — full batch, baked fresh.",
-  Specials: "4 Kg · Serves 70+ · Tell us exactly what you need.",
 };
 
 // ── Fallback image per category ───────────────────────────────
 const CATEGORY_FALLBACK = {
   Cakes:    "/images/cake.jpeg",
   Loaves:   "/images/loaf1a.jpeg",
-  Yoghuts:  "/images/yoghut.jpeg",
+  Yoghurts:  "/images/yoghut.jpeg",
   Cupcakes: "/images/cupcake1a.jpeg",
   Cookies:  "/images/cookies.jpeg",
   Specials: "/images/celebrationcake3c.jpeg",
@@ -49,7 +48,7 @@ export default function ProductCard({ product, onConfigure }) {
     : product.image;
 
   // Yoghuts are simple add-to-cart, everything else opens configurator
-  const isYoghut      = product.category === "Yoghuts";
+  const isYoghut      = product.category === "Yoghurts";
   const isConfigurable = !isYoghut && !!onConfigure;
 
   const handleAdd = (e) => {
@@ -67,7 +66,12 @@ export default function ProductCard({ product, onConfigure }) {
   const handleClick = () => {
     if (isConfigurable) onConfigure(product);
   };
-
+  const blurb =
+   product.category === "Specials"
+    ? product.name.toLowerCase().includes("fruit")
+      ? "Rich fruit cake made with premium dried fruits. Perfect for gifting and celebrations."
+      : "4 Kg · Serves 70+ people · Perfect for weddings, birthdays & large celebrations."
+    : CARD_BLURB[product.category];
   return (
     <div
       className={`card group hover:shadow-lg transition-all duration-200 flex flex-col
@@ -103,7 +107,7 @@ export default function ProductCard({ product, onConfigure }) {
           {product.name}
         </h3>
         <p className="text-gray-400 text-xs mb-3 flex-1 leading-relaxed">
-          {CARD_BLURB[product.category] || product.description}
+          <p>{blurb}</p>
         </p>
 
         {/* Options chips — for yoghut and cookies */}

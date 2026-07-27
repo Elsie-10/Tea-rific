@@ -536,6 +536,86 @@ function CupcakeModal({ onClose, onAdd }) {
     </div>
   );
 }
+// ── Fruit Cake Modal ───────────────────────────────────────────────
+function FruitCakeModal({ onClose, onAdd }) {
+   const [qty, setQty] = useState(1);
+
+  const handleAdd = () => {
+    onAdd({
+      name: "Fruit Cake (2 Kg)",
+      price: 5000,
+      quantity: qty,
+      category: "Specials",
+      image: "/images/fruitcake.jpeg",
+      customNote: "2 Kg premium fruit cake",
+    });
+
+    onClose();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-[#FDF8F0] border border-[#F2E0D0] rounded-xl p-4">
+        <p className="font-bold text-[#2C2C2C] text-lg">
+          Premium Fruit Cake
+        </p>
+
+        <p className="text-sm text-gray-500 mt-2">
+          A rich, moist 2 Kg fruit cake packed with premium dried fruits and
+          baked to perfection. Perfect for gifting, family gatherings and
+          celebrations.
+        </p>
+
+        <div className="mt-3 space-y-1 text-sm text-gray-600">
+          <p>🍰 Weight: <strong>2 Kg</strong></p>
+          <p>👨‍👩‍👧‍👦 Serves approximately <strong>18–22 people</strong></p>
+          <p>🎁 Ready-made premium fruit cake</p>
+        </div>
+
+        <p className="text-[#6B3F1F] font-bold text-xl mt-4">
+          Ksh 5,000
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-[#2C2C2C] mb-2">
+            Quantity
+          </p>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+
+            <span className="font-bold">{qty}</span>
+
+            <button
+              type="button"
+              onClick={() => setQty((q) => q + 1)}
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="flex items-center gap-2 bg-[#6B3F1F] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#8B5A2B] transition-all"
+        >
+          <ShoppingCart className="w-4 h-4" />
+          Add · Ksh {(5000 * qty).toLocaleString()}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ── Main Modal Wrapper ────────────────────────────────────────────────────
 
@@ -554,7 +634,10 @@ export default function ProductModal({ product, onClose }) {
   const MODALS = {
   Cakes: <CakeModal onClose={onClose} onAdd={handleAdd} />,
   Loaves: <LoafModal onClose={onClose} onAdd={handleAdd} />,
-  Specials: <CelebrationModal onClose={onClose} onAdd={handleAdd} />,
+  Specials:
+  product.name.toLowerCase().includes("fruit")
+    ? <FruitCakeModal onClose={onClose} onAdd={handleAdd} />
+    : <CelebrationModal onClose={onClose} onAdd={handleAdd} />,
   Cookies: <CookieModal onClose={onClose} onAdd={handleAdd} />,
   Cupcakes: <CupcakeModal onClose={onClose} onAdd={handleAdd} />,
 };
@@ -562,7 +645,10 @@ export default function ProductModal({ product, onClose }) {
 const TITLES = {
   Cakes: "Customise Your Cake",
   Loaves: "Choose Your Loaf",
-  Specials: "Large Celebration Cake",
+  Specials:
+  product.name.toLowerCase().includes("fruit")
+    ? "Fruit Cake"
+    : "Large Celebration Cake",
   Cookies: "Choose Your Cookies",
   Cupcakes: "Cupcakes",
 };
@@ -570,7 +656,10 @@ const TITLES = {
 const IMAGES = {
   Cakes: "/images/cake.jpeg",
   Loaves: "/images/loaf1a.jpeg",
-  Specials: "/images/celebrationcake1.jpeg",
+  Specials:
+  product.name.toLowerCase().includes("fruit")
+    ? "/images/fruitcake.jpeg"
+    : "/images/celebrationcake1.jpeg",
   Cookies: "/images/cookies.jpeg",
   Cupcakes: "/images/cupcake1a.jpeg",
 };
