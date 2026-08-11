@@ -18,8 +18,34 @@ const playfair = Playfair_Display({
 });
 
 export const metadata = {
-  title: "Tea-rific Treat Bakery",
-  description: "Order fresh artisan baked goods online — delivered to your door.",
+  metadataBase: new URL("https://tea-rific.vercel.app"),
+
+  title: {
+    default: "Tea-Terrific Treats | Cakes & Bakery Treats",
+    template: "%s | Tea-Terrific Treats",
+  },
+
+  description:
+    "Tea-Terrific Treats offers cakes, cupcakes, loaves, cookies and yoghurt.",
+
+  keywords: [
+    "Tea-Terrific Treats",
+    "bakery",
+    "cakes",
+    "cupcakes",
+    "cookies",
+    "cakes Kenya",
+  ],
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+
+  verification: {
+    google: "GOOGLE_VERIFICATION_CODE",
+  },
+
   icons: { icon: "/favicon.ico" },
 };
 
