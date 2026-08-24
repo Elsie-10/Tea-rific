@@ -94,7 +94,22 @@ cp .env.example .env.local
 4. Set `MPESA_ENV=sandbox` in `.env.local`
 
 ### 5. Seed your Supabase data
-Populate your Supabase tables with your initial products and any required starter records through the Supabase dashboard or your preferred local script.
+Before seeding, set `OWNER_EMAIL` and `OWNER_PASSWORD` in `.env.local`.
+Use the email address for the initial owner account and a long, unique
+password that is not used anywhere else. These values are required when
+the seed script runs; the script does not contain a default owner
+password or print credentials.
+
+Run the seed script after applying `supabase/schema.sql`:
+```bash
+node scripts/seed.js
+```
+
+After the owner account is created, sign in at `/admin/login`, rotate the
+owner password immediately through the approved password-management
+process, and remove or replace `OWNER_PASSWORD` from local and deployment
+environment stores. Re-running the seed does not change an existing
+owner password. Never commit `.env.local` or share the seed credential.
 
 ### 6. Run the development server
 ```bash

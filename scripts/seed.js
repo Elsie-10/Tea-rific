@@ -3,9 +3,22 @@ const { createClient } = require("@supabase/supabase-js");
 const bcrypt = require("bcryptjs");
 require("dotenv").config({ path: ".env.local" });
 
-const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-if (!NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("❌  Missing Supabase env vars in .env.local");
+const {
+  NEXT_PUBLIC_SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  OWNER_EMAIL,
+  OWNER_PASSWORD,
+} = process.env;
+const missingEnvVars = [
+  ["NEXT_PUBLIC_SUPABASE_URL", NEXT_PUBLIC_SUPABASE_URL],
+  ["SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY],
+  ["OWNER_EMAIL", OWNER_EMAIL],
+  ["OWNER_PASSWORD", OWNER_PASSWORD],
+].filter(([, value]) => !value).map(([name]) => name);
+
+if (missingEnvVars.length > 0) {
+  console.error(`❌  Missing required seed env vars: ${missingEnvVars.join(", ")}`);
+  console.error("    Add them to .env.local before running the seed script.");
   process.exit(1);
 }
 
@@ -43,18 +56,16 @@ async function seed() {
   }
 
   // Owner account
-  const ownerEmail = "owner@teaterrific.com";
-  const { data: existing } = await supabase.from("users").select("id").eq("email", ownerEmail).maybeSingle();
+  const { data: existing } = await supabase.from("users").select("id").eq("email", OWNER_EMAIL).maybeSingle();
   if (!existing) {
-    const hashed = await bcrypt.hash("Owner@2024!", 12);
+    const hashed = await bcrypt.hash(OWNER_PASSWORD, 12);
     const { error } = await supabase.from("users").insert({
-      name: "Tea-Terrific Owner", email: ownerEmail,
+      name: "Tea-Terrific Owner", email: OWNER_EMAIL,
       password: hashed, role: "owner", phone: "0720216244",
     });
     if (error) { console.error("❌  Owner creation failed:", error.message); process.exit(1); }
     console.log("✅  Owner account created");
-    console.log("    Email:    owner@teaterrific.com");
-    console.log("    Password: Owner@2024!\n");
+    console.log("    Owner credentials were read from the seed environment.");
   } else {
     console.log("ℹ️   Owner already exists.\n");
   }
@@ -76,7 +87,6 @@ async function seed() {
   }
 
   console.log("\n🎉  Done!");
-  console.log("    Owner login: owner@teaterrific.com / Owner@2024!");
 }
 
 seed().catch(err => { console.error("Seed error:", err.message); process.exit(1); });
