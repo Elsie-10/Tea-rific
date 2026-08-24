@@ -3,9 +3,21 @@ const { createClient } = require("@supabase/supabase-js");
 const bcrypt = require("bcryptjs");
 require("dotenv").config({ path: ".env.local" });
 
-const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+const {
+  NEXT_PUBLIC_SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  OWNER_SEED_EMAIL,
+  OWNER_SEED_PASSWORD,
+  OWNER_SEED_NAME,
+  OWNER_SEED_PHONE,
+} = process.env;
 if (!NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error("❌  Missing Supabase env vars in .env.local");
+  process.exit(1);
+}
+if (!OWNER_SEED_EMAIL || !OWNER_SEED_PASSWORD) {
+  console.error("❌  Missing OWNER_SEED_EMAIL or OWNER_SEED_PASSWORD in .env.local");
+  console.error("    Add both values before running the seed script.");
   process.exit(1);
 }
 
@@ -43,20 +55,27 @@ async function seed() {
   }
 
   // Owner account
-  const ownerEmail = "owner@teaterrific.com";
+  const ownerEmail = OWNER_SEED_EMAIL.toLowerCase().trim();
+  const ownerPassword = OWNER_SEED_PASSWORD;
+  const ownerName = (OWNER_SEED_NAME || "Tea-Terrific Owner").trim();
+  const ownerPhone = (OWNER_SEED_PHONE || "").trim();
+
+  if (!ownerEmail || !ownerPassword) {
+    console.error("❌  OWNER_SEED_EMAIL and OWNER_SEED_PASSWORD must not be empty.");
+    process.exit(1);
+  }
+
   const { data: existing } = await supabase.from("users").select("id").eq("email", ownerEmail).maybeSingle();
   if (!existing) {
-    const hashed = await bcrypt.hash("Owner@2024!", 12);
+    const hashed = await bcrypt.hash(ownerPassword, 12);
     const { error } = await supabase.from("users").insert({
-      name: "Tea-Terrific Owner", email: ownerEmail,
-      password: hashed, role: "owner", phone: "0720216244",
+      name: ownerName, email: ownerEmail,
+      password: hashed, role: "owner", phone: ownerPhone,
     });
     if (error) { console.error("❌  Owner creation failed:", error.message); process.exit(1); }
-    console.log("✅  Owner account created");
-    console.log("    Email:    owner@teaterrific.com");
-    console.log("    Password: Owner@2024!\n");
+    console.log("✅  Owner account created.\n");
   } else {
-    console.log("ℹ️   Owner already exists.\n");
+    console.log("ℹ️   Owner account already exists for configured OWNER_SEED_EMAIL.\n");
   }
 
   // Products
@@ -76,7 +95,6 @@ async function seed() {
   }
 
   console.log("\n🎉  Done!");
-  console.log("    Owner login: owner@teaterrific.com / Owner@2024!");
 }
 
 seed().catch(err => { console.error("Seed error:", err.message); process.exit(1); });
