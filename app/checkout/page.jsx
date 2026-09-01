@@ -23,6 +23,10 @@ export default function CheckoutPage() {
   const [orderId,   setOrderId]   = useState(null);
   const [loading,   setLoading]   = useState(false);
   const [serverErr, setServerErr] = useState("");
+  const [paymentInfo, setPaymentInfo] = useState({
+    status: "idle", // idle | sent | failed
+    message: "",
+  });
 
   // Empty cart guard
   if (cart.length === 0 && step !== "success") {
@@ -52,6 +56,7 @@ export default function CheckoutPage() {
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setServerErr("");
+    setPaymentInfo({ status: "idle", message: "" });
     setLoading(true);
 
     try {
@@ -86,7 +91,40 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to place order.");
 
-      setOrderId(data.data.id);
+      const createdOrderId = data.data.id;
+      setOrderId(createdOrderId);
+
+      try {
+        const stkRes = await fetch("/api/mpesa/stkpush", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: form.phone.trim(),
+            amount: totalAmount,
+            orderId: createdOrderId,
+          }),
+        });
+
+        const stkContentType = stkRes.headers.get("content-type") || "";
+        if (!stkContentType.includes("application/json")) {
+          throw new Error("Could not start M-Pesa payment. Please contact support.");
+        }
+        const stkData = await stkRes.json();
+        if (!stkRes.ok || !stkData.success) {
+          throw new Error(stkData.error || "Could not send STK Push.");
+        }
+
+        setPaymentInfo({
+          status: "sent",
+          message: stkData.message || "STK Push sent. Check your phone and enter your M-Pesa PIN.",
+        });
+      } catch (stkErr) {
+        setPaymentInfo({
+          status: "failed",
+          message: stkErr.message || "Order placed but M-Pesa prompt was not sent.",
+        });
+      }
+
       clearCart();
       setStep("success");
 
@@ -110,9 +148,18 @@ export default function CheckoutPage() {
             Thank you, <strong>{form.customerName}</strong>!
           </p>
           <p className="text-gray-500 text-sm mb-2 max-w-md">
-            Your order has been received. The baker will contact you to confirm
-            details and arrange the 50% deposit payment.
+            Your order has been received.
           </p>
+          {paymentInfo.status === "sent" && (
+            <p className="text-[#4A7C59] text-sm font-semibold mb-2 max-w-md">
+              ✅ {paymentInfo.message}
+            </p>
+          )}
+          {paymentInfo.status === "failed" && (
+            <p className="text-red-600 text-sm font-semibold mb-2 max-w-md">
+              ⚠️ {paymentInfo.message}
+            </p>
+          )}
           <p className="text-[#6B3F1F] text-sm font-semibold mb-8">
             📞 You can also call us on{" "}
             <a href="tel:0720216244" className="underline">0720 216 244</a>
