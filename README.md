@@ -92,6 +92,7 @@ cp .env.example .env.local
 2. Create an app to get `Consumer Key` and `Consumer Secret`
 3. Use the sandbox shortcode `174379` and test passkey for development
 4. Set `MPESA_ENV=sandbox` in `.env.local`
+5. For local callback testing with ngrok, set `MPESA_CALLBACK_BASE_URL=https://<your-ngrok-domain>`
 
 ### 5. Seed your Supabase data
 Before seeding, set `OWNER_EMAIL` and `OWNER_PASSWORD` in `.env.local`.
@@ -142,6 +143,17 @@ Open [http://localhost:3000](http://localhost:3000)
 5. Safaricom calls `/api/mpesa/callback` with payment result
 6. App updates order: `paymentStatus: "Paid"`, `orderStatus: "Preparing"`
 7. Customer's browser polls for status and shows confirmation
+
+### Local sandbox + ngrok verification
+
+1. Start your app: `npm run dev`
+2. Start ngrok against your local app port: `ngrok http 3000`
+3. Copy the HTTPS ngrok URL and set `MPESA_CALLBACK_BASE_URL` in `.env.local`
+4. Restart the app so env changes are picked up
+5. Place a checkout order using a Safaricom sandbox test number
+6. Confirm `/api/mpesa/stkpush` returns success and `CheckoutRequestID` is saved on the order
+7. Complete the STK prompt in the simulator/device and verify `/api/mpesa/callback` is hit
+8. Confirm order fields update to `payment_status=Paid` and `order_status=Preparing`
 
 ---
 
